@@ -102,7 +102,7 @@ public class TokenMgrError extends Error {
 			int errorLine, int errorColumn, String errorAfter, char curChar) {
 		setLexState(lexState);
 		
-		return ("Caractere inválido " + curChar + " (" + (int) curChar + ") "
+		return ("Caractere inválido '" + curChar + "' (ASCII: " + (int) curChar + ") "
 				+ " na linha " + errorLine + ", coluna " + errorColumn);
 	}
 

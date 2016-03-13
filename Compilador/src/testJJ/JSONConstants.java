@@ -65,65 +65,67 @@ public interface JSONConstants {
   /** RegularExpression Id. */
   int THEN = 32;
   /** RegularExpression Id. */
-  int UNTIL = 33;
+  int TYPES = 33;
   /** RegularExpression Id. */
-  int VAR = 34;
+  int UNTIL = 34;
   /** RegularExpression Id. */
-  int VARIABLES = 35;
+  int VAR = 35;
   /** RegularExpression Id. */
-  int WHILE = 36;
+  int VARIABLES = 36;
   /** RegularExpression Id. */
-  int WRITE = 37;
+  int WHILE = 37;
   /** RegularExpression Id. */
-  int BOOLEAN = 38;
+  int WRITE = 38;
   /** RegularExpression Id. */
-  int TRUE = 39;
+  int BOOLEAN = 39;
   /** RegularExpression Id. */
-  int FALSE = 40;
+  int TRUE = 40;
   /** RegularExpression Id. */
-  int DEFINE = 41;
+  int FALSE = 41;
   /** RegularExpression Id. */
-  int OP_ADD = 42;
+  int DEFINE = 42;
   /** RegularExpression Id. */
-  int OP_MULT = 43;
+  int OP_ADD = 43;
   /** RegularExpression Id. */
-  int OP_REL = 44;
+  int OP_MULT = 44;
   /** RegularExpression Id. */
-  int BRACKET_OPEN = 45;
+  int OP_REL = 45;
   /** RegularExpression Id. */
-  int BRACKET_CLOSE = 46;
+  int BRACKET_OPEN = 46;
   /** RegularExpression Id. */
-  int PARETHESIS_OPEN = 47;
+  int BRACKET_CLOSE = 47;
   /** RegularExpression Id. */
-  int PARETHESIS_CLOSE = 48;
+  int PARETHESIS_OPEN = 48;
   /** RegularExpression Id. */
-  int COMMA = 49;
+  int PARETHESIS_CLOSE = 49;
   /** RegularExpression Id. */
-  int DOT = 50;
+  int COMMA = 50;
   /** RegularExpression Id. */
-  int SEMICOLON = 51;
+  int DOT = 51;
   /** RegularExpression Id. */
-  int AND = 52;
+  int SEMICOLON = 52;
   /** RegularExpression Id. */
-  int OR = 53;
+  int AND = 53;
   /** RegularExpression Id. */
-  int NOT = 54;
+  int OR = 54;
   /** RegularExpression Id. */
-  int INTEGER_CONST = 55;
+  int NOT = 55;
   /** RegularExpression Id. */
-  int REAL_CONST = 56;
+  int INTEGER_CONST = 56;
   /** RegularExpression Id. */
-  int DIGIT = 57;
+  int REAL_CONST = 57;
   /** RegularExpression Id. */
-  int IDENTIFIER = 58;
+  int DIGIT = 58;
   /** RegularExpression Id. */
-  int IDENTIFIER_ERR = 59;
+  int IDENTIFIER = 59;
   /** RegularExpression Id. */
-  int STRING_START = 60;
+  int IDENTIFIER_ERR = 60;
   /** RegularExpression Id. */
-  int STRING_CORE = 61;
+  int STRING_START = 61;
   /** RegularExpression Id. */
-  int STRING_CONST = 62;
+  int STRING_CORE = 62;
+  /** RegularExpression Id. */
+  int STRING_CONST = 63;
 
   /** Lexical state. */
   int DEFAULT = 0;
@@ -167,6 +169,7 @@ public interface JSONConstants {
     "\"SET\"",
     "\"STRING\"",
     "\"THEN\"",
+    "\"TYPES\"",
     "\"UNTIL\"",
     "\"VAR\"",
     "\"VARIABLES\"",

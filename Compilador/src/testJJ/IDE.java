@@ -30,7 +30,7 @@ import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 
 public class IDE {
-	private JFrame window;
+	private PFrame window;
 	private RSyntaxTextArea editor;
 	private JTextArea output;
 	private JTextArea messages;
@@ -66,8 +66,8 @@ public class IDE {
 	}
 
 	private void createAndShowGUI() {
-		JFrame.setDefaultLookAndFeelDecorated(true);
-		window = new JFrame("Teste JSON");
+		PFrame.setDefaultLookAndFeelDecorated(true);
+		window = new PFrame("Teste JSON");
 
 		window.setMinimumSize(new Dimension(640,480));
 		window.setSize(new Dimension(640,480));

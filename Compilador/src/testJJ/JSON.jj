@@ -124,6 +124,9 @@ public class JSON {
 					case THEN : 
 					tokenName = "THEN";
 					break;
+					case TYPES : 
+					tokenName = "TYPES";
+					break;
 					case UNTIL : 
 					tokenName = "UNTIL";
 					break;
@@ -273,7 +276,7 @@ SKIP :
 
 SPECIAL_TOKEN:
 {
-  <COMMENT_LINE: "#" (~["\n","\r"])* ("\n"|"\r"|"\r\n") >
+  <COMMENT_LINE: "#" (~["\n","\r","\r"])* >
 | < COMMENT_INNER : "{" >: IN_COMMENT
 | < COMMENT_BLOCK : "{" (~["}"])* "}" >
 }
@@ -308,6 +311,7 @@ TOKEN [IGNORE_CASE] : /* RESERVED WORDS */
 | < SET : "SET" >
 | < STRING : "STRING" >
 | < THEN : "THEN" >
+| < TYPES : "TYPES" >
 | < UNTIL : "UNTIL" >
 | < VAR : "VAR" >
 | < VARIABLES : "VARIABLES" >
@@ -349,8 +353,8 @@ TOKEN :
 
 TOKEN [IGNORE_CASE]:
 {
-  < IDENTIFIER : [ "a"-"z", "_" ]([ "a"-"z" , "0"-"9", "_"]){0,63} >
-  | < IDENTIFIER_ERR : [ "a"-"z", "_" ]([ "a"-"z" , "0"-"9", "_"]){64,0} >
+  < IDENTIFIER : [ "a"-"z", "_" ]([ "a"-"z" , "0"-"9", "_"]){0,62} >
+  | < IDENTIFIER_ERR : [ "a"-"z", "_" ]([ "a"-"z" , "0"-"9", "_"]){63,} >
 }
 
 SPECIAL_TOKEN:{  < STRING_START : "\"" >: IN_STRING}< IN_STRING > TOKEN :{  < STRING_CORE:  (~["\""])* > : DEFAULT }

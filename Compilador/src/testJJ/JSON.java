@@ -123,6 +123,9 @@ public class JSON implements JSONConstants {
                                         case THEN :
                                         tokenName = "THEN";
                                         break;
+                                        case TYPES :
+                                        tokenName = "TYPES";
+                                        break;
                                         case UNTIL :
                                         tokenName = "UNTIL";
                                         break;
@@ -398,7 +401,7 @@ public class JSON implements JSONConstants {
   /** Generate ParseException. */
   public ParseException generateParseException() {
     jj_expentries.clear();
-    boolean[] la1tokens = new boolean[63];
+    boolean[] la1tokens = new boolean[64];
     if (jj_kind >= 0) {
       la1tokens[jj_kind] = true;
       jj_kind = -1;
@@ -415,7 +418,7 @@ public class JSON implements JSONConstants {
         }
       }
     }
-    for (int i = 0; i < 63; i++) {
+    for (int i = 0; i < 64; i++) {
       if (la1tokens[i]) {
         jj_expentry = new int[1];
         jj_expentry[0] = i;
