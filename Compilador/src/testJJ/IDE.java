@@ -50,7 +50,7 @@ public class IDE {
 			File f = new File(args[0]);
 			System.out.println(f);
 
-			JSON parser = new JSON(new FileInputStream(f));
+			JASON parser = new JASON(new FileInputStream(f));
 			String result = parser.testParser(System.in);
 			if (parser.getErrorCode() > 0) {
 				System.out.println(parser.getErrorMessage());
@@ -67,7 +67,7 @@ public class IDE {
 
 	private void createAndShowGUI() {
 		PFrame.setDefaultLookAndFeelDecorated(true);
-		window = new PFrame("Teste JSON");
+		window = new PFrame("Teste JASON");
 
 		window.setMinimumSize(new Dimension(640,480));
 		window.setSize(new Dimension(640,480));
@@ -142,7 +142,7 @@ public class IDE {
 				output.setText("");
 				messages.setText("");
 
-				JSON parser = new JSON(is);
+				JASON parser = new JASON(is);
 				String result = parser.testParser(is);
 				if (parser.getErrorCode() > 0) {
 					messages.setForeground(Color.red);

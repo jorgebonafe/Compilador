@@ -6,12 +6,12 @@ options {
   ERROR_REPORTING = true;
 }
 
-PARSER_BEGIN(JSON)
+PARSER_BEGIN(JASON)
 package testJJ;
 
 import java.io.InputStream;
 
-public class JSON {
+public class JASON {
 	int errorCode = 0;
 	String errorMessage = null;
 
@@ -263,7 +263,7 @@ public class JSON {
 		}
 		return result;	}}
 
-PARSER_END(JSON)
+PARSER_END(JASON)
 
 SKIP :
 {
@@ -354,7 +354,7 @@ TOKEN :
 TOKEN [IGNORE_CASE]:
 {
   < IDENTIFIER : [ "a"-"z", "_" ]([ "a"-"z" , "0"-"9", "_"]){0,62} >
-  | < IDENTIFIER_ERR : [ "a"-"z", "_" ]([ "a"-"z" , "0"-"9", "_"]){63,} >
+  | < IDENTIFIER_ERR : [ "a"-"z", "_" ]([ "a"-"z" , "0"-"9", "_"]){255,} >
 }
 
 SPECIAL_TOKEN:{  < STRING_START : "\"" >: IN_STRING}< IN_STRING > TOKEN :{  < STRING_CORE:  (~["\""])* > : DEFAULT }
