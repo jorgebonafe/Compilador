@@ -347,7 +347,7 @@ TOKEN : /* SYMBOLS */
 TOKEN :
 {
   < INTEGER_CONST : (< DIGIT >)+ >
-| < REAL_CONST : (< DIGIT >)+"." | "."(< DIGIT >)+ >
+| < REAL_CONST : (< DIGIT >)+"."(< DIGIT >)* | "."(< DIGIT >)+ >
 | < #DIGIT : [ "0"-"9" ] >
 }
 
