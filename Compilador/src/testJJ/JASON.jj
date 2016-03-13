@@ -354,12 +354,12 @@ TOKEN :
 TOKEN [IGNORE_CASE]:
 {
   < IDENTIFIER : [ "a"-"z", "_" ]([ "a"-"z" , "0"-"9", "_"]){0,62} >
-  | < IDENTIFIER_ERR : [ "a"-"z", "_" ]([ "a"-"z" , "0"-"9", "_"]){255,} >
+  | < IDENTIFIER_ERR : [ "a"-"z", "_" ]([ "a"-"z" , "0"-"9", "_"]){63,} >
 }
 
 SPECIAL_TOKEN:{  < STRING_START : "\"" >: IN_STRING}< IN_STRING > TOKEN :{  < STRING_CORE:  (~["\""])* > : DEFAULT }
 
 TOKEN [IGNORE_CASE]:
 {
-  < STRING_CONST : "\"" (~["\""])*  "\"" >
-}                        
+  < STRING_CONST : "\"" (~["\""])*  "\"" > 
+}                     
