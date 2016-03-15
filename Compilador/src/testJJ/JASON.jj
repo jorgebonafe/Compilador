@@ -326,7 +326,7 @@ TOKEN [IGNORE_CASE] : /* RESERVED WORDS */
 TOKEN : /* OPERATORS */
 {
   < OP_ADD : "+" | "-" >
-| < OP_MULT : "*" | "/" >  
+| < OP_MULT : "*" | "/" | "%" >  
 | < OP_REL: "=" | "<" | ">"| "<=" | ">=" | "!" >
 }
 
