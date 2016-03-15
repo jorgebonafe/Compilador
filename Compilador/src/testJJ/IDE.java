@@ -160,6 +160,9 @@ public class IDE {
 		messages.setBorder(BorderFactory.createBevelBorder(BevelBorder.LOWERED));
 		messages.setFont(messages.getFont().deriveFont(18f));
 		messages.setEditable(false);
+		messages.setLineWrap(true);
+		messages.setWrapStyleWord(true);
+		
 		
 		gbc.fill = GridBagConstraints.HORIZONTAL;
 		gbc.gridx = 0;

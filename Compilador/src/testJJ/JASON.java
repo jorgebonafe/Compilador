@@ -237,7 +237,8 @@ public class JASON implements JASONConstants {
                                         case IDENTIFIER_ERR :
                                         errorCode = 1;
                                         errorMessage = "Identificador muito longo na linha " +
-                                                t.beginLine + ", coluna "+t.beginColumn;
+                                                t.beginLine + ", coluna "+t.beginColumn +
+                                                ". Tamanho m\u00e1ximo \u00e9 63 caracteres.";
                                         break outerloop;
                                         default:
                                         break outerloop;
