@@ -38,217 +38,237 @@ public class JASON implements JASONConstants {
                                 {
                                         int spaces = 0;
                                         spaces = 4 - new Integer(t.beginLine).toString().length();
-                                        if (spaces<0)
+                                        if (spaces < 0)
                                                 spaces = 0;
                                         int spaces2 = 3 - new Integer(t.beginColumn).toString().length();
                                         if (spaces2 < 0)
                                                 spaces2 = 0;
 
                                         result = result + "(";
-                                        for (int i=0;i<spaces;i++)
+                                        for (int i = 0; i < spaces; i++)
                                                 result = result + " ";
                                         result = result + t.beginLine + ",";
-                                        for (int i=0;i<spaces2;i++)
+                                        for (int i = 0; i < spaces2; i++)
                                                 result = result + " ";
                                         result = result + t.beginColumn + ")   ";
                                 }
                                 switch (t.kind)
                                 {
                                         case ARRAY :
-                                        tokenName = "ARRAY";
-                                        break;
+                                                tokenName = "ARRAY";
+                                                break;
                                         case BEGIN :
-                                        tokenName = "BEGIN";
-                                        break;
+                                                tokenName = "BEGIN";
+                                                break;
                                         case CALL :
-                                        tokenName = "CALL";
-                                        break;
+                                                tokenName = "CALL";
+                                                break;
                                         case DO :
-                                        tokenName = "DO";
-                                        break;
+                                                tokenName = "DO";
+                                                break;
                                         case ELSE :
-                                        tokenName = "ELSE";
-                                        break;
+                                                tokenName = "ELSE";
+                                                break;
                                         case END :
-                                        tokenName = "END";
-                                        break;
+                                                tokenName = "END";
+                                                break;
                                         case ENDIF :
-                                        tokenName = "ENDIF";
-                                        break;
+                                                tokenName = "ENDIF";
+                                                break;
                                         case ENDUNTIL :
-                                        tokenName = "ENDUNTIL";
-                                        break;
+                                                tokenName = "ENDUNTIL";
+                                                break;
                                         case ENDWHILE :
-                                        tokenName = "ENDWHILE";
-                                        break;
+                                                tokenName = "ENDWHILE";
+                                                break;
                                         case FUNCTION :
-                                        tokenName = "FUNCTION";
-                                        break;
+                                                tokenName = "FUNCTION";
+                                                break;
                                         case IF :
-                                        tokenName = "IF";
-                                        break;
+                                                tokenName = "IF";
+                                                break;
                                         case INTEGER :
-                                        tokenName = "INTEGER";
-                                        break;
+                                                tokenName = "INTEGER";
+                                                break;
                                         case PARAMETERS :
-                                        tokenName = "PARAMETERS";
-                                        break;
+                                                tokenName = "PARAMETERS";
+                                                break;
                                         case PROCEDURE :
-                                        tokenName = "PROCEDURE";
-                                        break;
+                                                tokenName = "PROCEDURE";
+                                                break;
                                         case RETURNS :
-                                        tokenName = "RETURNS";
-                                        break;
+                                                tokenName = "RETURNS";
+                                                break;
                                         case PROGRAM :
-                                        tokenName = "PROGRAM";
-                                        break;
+                                                tokenName = "PROGRAM";
+                                                break;
                                         case READ :
-                                        tokenName = "READ";
-                                        break;
+                                                tokenName = "READ";
+                                                break;
                                         case REAL :
-                                        tokenName = "REAL";
-                                        break;
+                                                tokenName = "REAL";
+                                                break;
                                         case RECORD :
-                                        tokenName = "RECORD";
-                                        break;
+                                                tokenName = "RECORD";
+                                                break;
                                         case RETURN :
-                                        tokenName = "RETURN";
-                                        break;
+                                                tokenName = "RETURN";
+                                                break;
                                         case SET :
-                                        tokenName = "SET";
-                                        break;
+                                                tokenName = "SET";
+                                                break;
                                         case STRING :
-                                        tokenName = "STRING";
-                                        break;
+                                                tokenName = "STRING";
+                                                break;
                                         case THEN :
-                                        tokenName = "THEN";
-                                        break;
+                                                tokenName = "THEN";
+                                                break;
                                         case TYPES :
-                                        tokenName = "TYPES";
-                                        break;
+                                                tokenName = "TYPES";
+                                                break;
                                         case UNTIL :
-                                        tokenName = "UNTIL";
-                                        break;
+                                                tokenName = "UNTIL";
+                                                break;
                                         case VAR :
-                                        tokenName = "VAR";
-                                        break;
+                                                tokenName = "VAR";
+                                                break;
                                         case VARIABLES :
-                                        tokenName = "VARIABLES";
-                                        break;
+                                                tokenName = "VARIABLES";
+                                                break;
                                         case WHILE :
-                                        tokenName = "WHILE";
-                                        break;
+                                                tokenName = "WHILE";
+                                                break;
                                         case WRITE :
-                                        tokenName = "WRITE";
-                                        break;
+                                                tokenName = "WRITE";
+                                                break;
                                         case BOOLEAN :
-                                        tokenName = "BOOLEAN";
-                                        break;
+                                                tokenName = "BOOLEAN";
+                                                break;
                                         case TRUE :
-                                        tokenName = "TRUE";
-                                        break;
+                                                tokenName = "TRUE";
+                                                break;
                                         case FALSE :
-                                        tokenName = "FALSE";
-                                        break;
+                                                tokenName = "FALSE";
+                                                break;
                                         case DEFINE :
-                                        tokenName = "DEFINE";
-                                        break;
+                                                tokenName = "DEFINE";
+                                                break;
                                         case OP_ADD :
-                                        tokenName = "OP_ADD";
-                                        break;
+                                                tokenName = "OP_ADD";
+                                                break;
+                                        case OP_SUB :
+                                                tokenName = "OP_SUB";
+                                                break;
                                         case OP_MULT :
-                                        tokenName = "OP_MULT";
-                                        break;
-                                        case OP_REL :
-                                        tokenName = "OP_REL";
-                                        break;
+                                                tokenName = "OP_MULT";
+                                                break;
+                                        case OP_DIV :
+                                                tokenName = "OP_DIV";
+                                                break;
+                                        case OP_MOD :
+                                                tokenName = "OP_MOD";
+                                                break;
+                                        case OP_EQ :
+                                                tokenName = "OP_EQ";
+                                                break;
+                                        case OP_LESS :
+                                                tokenName = "OP_LESS";
+                                                break;
+                                        case OP_GREAT :
+                                                tokenName = "OP_GREAT";
+                                                break;
+                                        case OP_LESS_EQ :
+                                                tokenName = "OP_LESS_EQ";
+                                                break;
+                                        case OP_GREAT_EQ :
+                                                tokenName = "OP_GREAT_EQ";
+                                                break;
+                                        case OP_NOT_EQ :
+                                                tokenName = "OP_NOT_EQ";
+                                                break;
                                         case BRACKET_OPEN :
-                                        tokenName = "BRACKET_OPEN";
-                                        break;
+                                                tokenName = "BRACKET_OPEN";
+                                                break;
                                         case BRACKET_CLOSE :
-                                        tokenName = "BRACKET_CLOSE";
-                                        break;
+                                                tokenName = "BRACKET_CLOSE";
+                                                break;
                                         case PARETHESIS_OPEN :
-                                        tokenName = "PARETHESIS_OPEN";
-                                        break;
+                                                tokenName = "PARETHESIS_OPEN";
+                                                break;
                                         case PARETHESIS_CLOSE :
-                                        tokenName = "PARETHESIS_CLOSE";
-                                        break;
+                                                tokenName = "PARETHESIS_CLOSE";
+                                                break;
                                         case COMMA :
-                                        tokenName = "COMMA";
-                                        break;
+                                                tokenName = "COMMA";
+                                                break;
                                         case DOT :
-                                        tokenName = "DOT";
-                                        break;
+                                                tokenName = "DOT";
+                                                break;
                                         case SEMICOLON :
-                                        tokenName = "SEMICOLON";
-                                        break;
+                                                tokenName = "SEMICOLON";
+                                                break;
                                         case AND :
-                                        tokenName = "AND";
-                                        break;
+                                                tokenName = "AND";
+                                                break;
                                         case OR :
-                                        tokenName = "OR";
-                                        break;
+                                                tokenName = "OR";
+                                                break;
                                         case NOT :
-                                        tokenName = "NOT";
-                                        break;
+                                                tokenName = "NOT";
+                                                break;
                                         case INTEGER_CONST :
-                                        tokenName = "INTEGER_CONST";
-                                        break;
+                                                tokenName = "INTEGER_CONST";
+                                                break;
                                         case REAL_CONST :
-                                        tokenName = "REAL_CONST";
-                                        break;
+                                                tokenName = "REAL_CONST";
+                                                break;
                                         case IDENTIFIER :
-                                        tokenName = "IDENTIFIER";
-                                        break;
+                                                tokenName = "IDENTIFIER";
+                                                break;
                                         case COMMENT_CORE :
-                                        lastCommentT = t.specialToken;
+                                                lastCommentT = t.specialToken;
                                         case STRING_CORE :
-                                        lastStringT = t.specialToken;
-                                        break;
+                                                lastStringT = t.specialToken;
+                                                break;
                                         case STRING_CONST :
-                                        tokenName = "STRING_CONST";
-                                        break;
+                                                tokenName = "STRING_CONST";
+                                                break;
                                         case EOF :
                                                 if (previousT != null && previousT.kind == COMMENT_CORE) {
-                                                                errorCode = 2;
-                                                        errorMessage = "Coment\u00e1rio de bloco na linha "+
-                                                        lastCommentT.beginLine + ", coluna "+lastCommentT.beginColumn + " nunca foi fechado.";
+                                                        errorCode = 2;
+                                                        errorMessage = "Coment\u00e1rio de bloco na linha " + lastCommentT.beginLine
+                                                                + ", coluna " + lastCommentT.beginColumn + " nunca foi fechado.";
                                                 }
-                                                if (t.specialToken != null &&
-                                                        t.specialToken.kind == COMMENT_INNER) {
-                                                                errorCode = 2;
-                                                        errorMessage = "Coment\u00e1rio de bloco na linha "+
-                                                        t.beginLine + ", coluna "+t.beginColumn + " nunca foi fechado.";
+                                                if (t.specialToken != null && t.specialToken.kind == COMMENT_INNER) {
+                                                        errorCode = 2;
+                                                        errorMessage = "Coment\u00e1rio de bloco na linha " + t.beginLine
+                                                                + ", coluna "+t.beginColumn + " nunca foi fechado.";
                                                 }
                                                 else if (previousT != null && previousT.kind == STRING_CORE) {
-                                                                errorCode = 3;
-                                                        errorMessage = "String na linha "+
-                                                        lastStringT.beginLine + ", coluna "+lastStringT.beginColumn + " nunca foi fechada.";
+                                                        errorCode = 3;
+                                                        errorMessage = "String na linha " + lastStringT.beginLine
+                                                                + ", coluna " + lastStringT.beginColumn + " nunca foi fechada.";
                                                 }
-                                                else if (t.specialToken != null &&
-                                                        t.specialToken.kind == STRING_START) {
-                                                                errorCode = 3;
-                                                        errorMessage = "String na linha "+
-                                                        t.specialToken.beginLine + ", coluna "+t.specialToken.beginColumn + " nunca foi fechada.";
+                                                else if (t.specialToken != null && t.specialToken.kind == STRING_START) {
+                                                        errorCode = 3;
+                                                        errorMessage = "String na linha " + t.specialToken.beginLine
+                                                                + ", coluna " + t.specialToken.beginColumn + " nunca foi fechada.";
                                                 }
-
-                                        break outerloop;
+                                                break outerloop;
                                         case IDENTIFIER_ERR :
-                                        errorCode = 1;
-                                        errorMessage = "Identificador muito longo na linha " +
-                                                t.beginLine + ", coluna "+t.beginColumn +
-                                                ". Tamanho m\u00e1ximo \u00e9 63 caracteres.";
-                                        break outerloop;
+                                                errorCode = 1;
+                                                errorMessage = "Identificador muito longo na linha " + t.beginLine
+                                                        + ", coluna " + t.beginColumn + ". Tamanho m\u00e1ximo \u00e9 63 caracteres.";
+                                                break outerloop;
                                         default:
-                                        break outerloop;
+                                                break outerloop;
                                 }
                                 previousT = t;
 
                                 int spaces = 0;
                                 spaces = 16 - tokenName.length();
 
-                                for (int i=0;i<spaces;i++)
+                                for (int i = 0; i < spaces; i++)
                                         result = result + " ";
 
                                 result = result + tokenName + ": " + t.image + "\u005cn";
@@ -277,15 +297,20 @@ public class JASON implements JASONConstants {
   final private int[] jj_la1 = new int[0];
   static private int[] jj_la1_0;
   static private int[] jj_la1_1;
+  static private int[] jj_la1_2;
   static {
       jj_la1_init_0();
       jj_la1_init_1();
+      jj_la1_init_2();
    }
    private static void jj_la1_init_0() {
       jj_la1_0 = new int[] {};
    }
    private static void jj_la1_init_1() {
       jj_la1_1 = new int[] {};
+   }
+   private static void jj_la1_init_2() {
+      jj_la1_2 = new int[] {};
    }
 
   /** Constructor with InputStream. */
@@ -402,7 +427,7 @@ public class JASON implements JASONConstants {
   /** Generate ParseException. */
   public ParseException generateParseException() {
     jj_expentries.clear();
-    boolean[] la1tokens = new boolean[64];
+    boolean[] la1tokens = new boolean[72];
     if (jj_kind >= 0) {
       la1tokens[jj_kind] = true;
       jj_kind = -1;
@@ -416,10 +441,13 @@ public class JASON implements JASONConstants {
           if ((jj_la1_1[i] & (1<<j)) != 0) {
             la1tokens[32+j] = true;
           }
+          if ((jj_la1_2[i] & (1<<j)) != 0) {
+            la1tokens[64+j] = true;
+          }
         }
       }
     }
-    for (int i = 0; i < 64; i++) {
+    for (int i = 0; i < 72; i++) {
       if (la1tokens[i]) {
         jj_expentry = new int[1];
         jj_expentry[0] = i;

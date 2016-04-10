@@ -2,8 +2,8 @@
  * JavaCC template file created by SF JavaCC plugin 1.5.28+ wizard for JavaCC 1.5.0+
  */
 options {
-  static = false;
-  ERROR_REPORTING = true;
+	static = false;
+	ERROR_REPORTING = true;
 }
 
 PARSER_BEGIN(JASON)
@@ -15,16 +15,21 @@ public class JASON {
 	int errorCode = 0;
 	String errorMessage = null;
 
-	public int getErrorCode()	{		return errorCode;
+	public int getErrorCode()
+	{
+		return errorCode;
 	}
 
-	public String getErrorMessage()	{		return errorMessage;
+	public String getErrorMessage()
+	{
+		return errorMessage;
 	}
-	
+
 	public String testParser(InputStream is)	{
 		String result = "";
 		errorCode = 0;
-		System.out.println("ENTRADA DE TESTE :\n");
+
+		System.out.println("ENTRADA DE TESTE :\n");
 
 		Token t = null;
 		Token previousT = null;
@@ -37,218 +42,241 @@ public class JASON {
 			{
 				t = getNextToken();
 				String tokenName = "";
-				if (t.kind != 0)				{					int spaces = 0;
+				if (t.kind != 0)
+				{
+					int spaces = 0;
 					spaces = 4 - new Integer(t.beginLine).toString().length();
-					if (spaces<0)
+					if (spaces < 0)
 						spaces = 0;
 					int spaces2 = 3 - new Integer(t.beginColumn).toString().length();
 					if (spaces2 < 0)
 						spaces2 = 0;
 
 					result = result + "(";
-					for (int i=0;i<spaces;i++)
+					for (int i = 0; i < spaces; i++)
 						result = result + " ";
 					result = result + t.beginLine + ",";
-					for (int i=0;i<spaces2;i++)
+					for (int i = 0; i < spaces2; i++)
 						result = result + " ";
 					result = result + t.beginColumn + ")   ";
 				}
 				switch (t.kind)
 				{
-					case ARRAY : 
-					tokenName = "ARRAY";
-					break;
-					case BEGIN : 
-					tokenName = "BEGIN";
-					break;
-					case CALL : 
-					tokenName = "CALL";
-					break;
-					case DO : 
-					tokenName = "DO";
-					break;
-					case ELSE : 
-					tokenName = "ELSE";
-					break;
-					case END : 
-					tokenName = "END";
-					break;
-					case ENDIF : 
-					tokenName = "ENDIF";
-					break;
-					case ENDUNTIL : 
-					tokenName = "ENDUNTIL";
-					break;
-					case ENDWHILE : 
-					tokenName = "ENDWHILE";
-					break;
-					case FUNCTION : 
-					tokenName = "FUNCTION";
-					break;
-					case IF : 
-					tokenName = "IF";
-					break;
-					case INTEGER : 
-					tokenName = "INTEGER";
-					break;
-					case PARAMETERS : 
-					tokenName = "PARAMETERS";
-					break;
-					case PROCEDURE : 
-					tokenName = "PROCEDURE";
-					break;
-					case RETURNS : 
-					tokenName = "RETURNS";
-					break;
-					case PROGRAM : 
-					tokenName = "PROGRAM";
-					break;
-					case READ : 
-					tokenName = "READ";
-					break;
-					case REAL : 
-					tokenName = "REAL";
-					break;
-					case RECORD : 
-					tokenName = "RECORD";
-					break;
-					case RETURN : 
-					tokenName = "RETURN";
-					break;
-					case SET : 
-					tokenName = "SET";
-					break;
-					case STRING : 
-					tokenName = "STRING";
-					break;
-					case THEN : 
-					tokenName = "THEN";
-					break;
-					case TYPES : 
-					tokenName = "TYPES";
-					break;
-					case UNTIL : 
-					tokenName = "UNTIL";
-					break;
-					case VAR : 
-					tokenName = "VAR";
-					break;
-					case VARIABLES : 
-					tokenName = "VARIABLES";
-					break;
-					case WHILE : 
-					tokenName = "WHILE";
-					break;
-					case WRITE : 
-					tokenName = "WRITE";
-					break;
-					case BOOLEAN : 
-					tokenName = "BOOLEAN";
-					break;
-					case TRUE : 
-					tokenName = "TRUE";
-					break;
-					case FALSE : 
-					tokenName = "FALSE";
-					break;
-					case DEFINE : 
-					tokenName = "DEFINE";
-					break;
-					case OP_ADD : 
-					tokenName = "OP_ADD";
-					break;
-					case OP_MULT : 
-					tokenName = "OP_MULT";
-					break;
-					case OP_REL : 
-					tokenName = "OP_REL";
-					break;
-					case BRACKET_OPEN : 
-					tokenName = "BRACKET_OPEN";
-					break;
-					case BRACKET_CLOSE : 
-					tokenName = "BRACKET_CLOSE";
-					break;
-					case PARETHESIS_OPEN : 
-					tokenName = "PARETHESIS_OPEN";
-					break;
-					case PARETHESIS_CLOSE : 
-					tokenName = "PARETHESIS_CLOSE";
-					break;
-					case COMMA : 
-					tokenName = "COMMA";
-					break;
-					case DOT : 
-					tokenName = "DOT";
-					break;
-					case SEMICOLON : 
-					tokenName = "SEMICOLON";
-					break;
-					case AND : 
-					tokenName = "AND";
-					break;
-					case OR : 
-					tokenName = "OR";
-					break;
-					case NOT : 
-					tokenName = "NOT";
-					break;
-					case INTEGER_CONST : 
-					tokenName = "INTEGER_CONST";
-					break;
-					case REAL_CONST : 
-					tokenName = "REAL_CONST";
-					break;
-					case IDENTIFIER : 
-					tokenName = "IDENTIFIER";
-					break;
-					case COMMENT_CORE : 
-					lastCommentT = t.specialToken;
-					case STRING_CORE : 
-					lastStringT = t.specialToken;
-					break;
-					case STRING_CONST : 
-					tokenName = "STRING_CONST";
-					break;
+					case ARRAY :
+						tokenName = "ARRAY";
+						break;
+					case BEGIN :
+						tokenName = "BEGIN";
+						break;
+					case CALL :
+						tokenName = "CALL";
+						break;
+					case DO :
+						tokenName = "DO";
+						break;
+					case ELSE :
+						tokenName = "ELSE";
+						break;
+					case END :
+						tokenName = "END";
+						break;
+					case ENDIF :
+						tokenName = "ENDIF";
+						break;
+					case ENDUNTIL :
+						tokenName = "ENDUNTIL";
+						break;
+					case ENDWHILE :
+						tokenName = "ENDWHILE";
+						break;
+					case FUNCTION :
+						tokenName = "FUNCTION";
+						break;
+					case IF :
+						tokenName = "IF";
+						break;
+					case INTEGER :
+						tokenName = "INTEGER";
+						break;
+					case PARAMETERS :
+						tokenName = "PARAMETERS";
+						break;
+					case PROCEDURE :
+						tokenName = "PROCEDURE";
+						break;
+					case RETURNS :
+						tokenName = "RETURNS";
+						break;
+					case PROGRAM :
+						tokenName = "PROGRAM";
+						break;
+					case READ :
+						tokenName = "READ";
+						break;
+					case REAL :
+						tokenName = "REAL";
+						break;
+					case RECORD :
+						tokenName = "RECORD";
+						break;
+					case RETURN :
+						tokenName = "RETURN";
+						break;
+					case SET :
+						tokenName = "SET";
+						break;
+					case STRING :
+						tokenName = "STRING";
+						break;
+					case THEN :
+						tokenName = "THEN";
+						break;
+					case TYPES :
+						tokenName = "TYPES";
+						break;
+					case UNTIL :
+						tokenName = "UNTIL";
+						break;
+					case VAR :
+						tokenName = "VAR";
+						break;
+					case VARIABLES :
+						tokenName = "VARIABLES";
+						break;
+					case WHILE :
+						tokenName = "WHILE";
+						break;
+					case WRITE :
+						tokenName = "WRITE";
+						break;
+					case BOOLEAN :
+						tokenName = "BOOLEAN";
+						break;
+					case TRUE :
+						tokenName = "TRUE";
+						break;
+					case FALSE :
+						tokenName = "FALSE";
+						break;
+					case DEFINE :
+						tokenName = "DEFINE";
+						break;
+					case OP_ADD :
+						tokenName = "OP_ADD";
+						break;
+					case OP_SUB :
+						tokenName = "OP_SUB";
+						break;
+					case OP_MULT :
+						tokenName = "OP_MULT";
+						break;
+					case OP_DIV :
+						tokenName = "OP_DIV";
+						break;
+					case OP_MOD :
+						tokenName = "OP_MOD";
+						break;
+					case OP_EQ :
+						tokenName = "OP_EQ";
+						break;
+					case OP_LESS :
+						tokenName = "OP_LESS";
+						break;
+					case OP_GREAT :
+						tokenName = "OP_GREAT";
+						break;
+					case OP_LESS_EQ :
+						tokenName = "OP_LESS_EQ";
+						break;
+					case OP_GREAT_EQ :
+						tokenName = "OP_GREAT_EQ";
+						break;
+					case OP_NOT_EQ :
+						tokenName = "OP_NOT_EQ";
+						break;
+					case BRACKET_OPEN :
+						tokenName = "BRACKET_OPEN";
+						break;
+					case BRACKET_CLOSE :
+						tokenName = "BRACKET_CLOSE";
+						break;
+					case PARETHESIS_OPEN :
+						tokenName = "PARETHESIS_OPEN";
+						break;
+					case PARETHESIS_CLOSE :
+						tokenName = "PARETHESIS_CLOSE";
+						break;
+					case COMMA :
+						tokenName = "COMMA";
+						break;
+					case DOT :
+						tokenName = "DOT";
+						break;
+					case SEMICOLON :
+						tokenName = "SEMICOLON";
+						break;
+					case AND :
+						tokenName = "AND";
+						break;
+					case OR :
+						tokenName = "OR";
+						break;
+					case NOT :
+						tokenName = "NOT";
+						break;
+					case INTEGER_CONST :
+						tokenName = "INTEGER_CONST";
+						break;
+					case REAL_CONST :
+						tokenName = "REAL_CONST";
+						break;
+					case IDENTIFIER :
+						tokenName = "IDENTIFIER";
+						break;
+					case COMMENT_CORE :
+						lastCommentT = t.specialToken;
+					case STRING_CORE :
+						lastStringT = t.specialToken;
+						break;
+					case STRING_CONST :
+						tokenName = "STRING_CONST";
+						break;
 					case EOF :
 						if (previousT != null && previousT.kind == COMMENT_CORE) {
-								errorCode = 2;
-							errorMessage = "Comentário de bloco na linha "+
-							lastCommentT.beginLine + ", coluna "+lastCommentT.beginColumn + " nunca foi fechado.";
-						}					
-						if (t.specialToken != null &&
-							t.specialToken.kind == COMMENT_INNER) {								errorCode = 2;
-							errorMessage = "Comentário de bloco na linha "+
-							t.beginLine + ", coluna "+t.beginColumn + " nunca foi fechado.";
+							errorCode = 2;
+							errorMessage = "Comentário de bloco na linha " + lastCommentT.beginLine
+								+ ", coluna " + lastCommentT.beginColumn + " nunca foi fechado.";
+						}
+						if (t.specialToken != null && t.specialToken.kind == COMMENT_INNER) {
+							errorCode = 2;
+							errorMessage = "Comentário de bloco na linha " + t.beginLine
+								+ ", coluna "+t.beginColumn + " nunca foi fechado.";
 						}
 						else if (previousT != null && previousT.kind == STRING_CORE) {
-								errorCode = 3;
-							errorMessage = "String na linha "+
-							lastStringT.beginLine + ", coluna "+lastStringT.beginColumn + " nunca foi fechada.";
+							errorCode = 3;
+							errorMessage = "String na linha " + lastStringT.beginLine
+								+ ", coluna " + lastStringT.beginColumn + " nunca foi fechada.";
 						}
-						else if (t.specialToken != null &&
-							t.specialToken.kind == STRING_START) {
-								errorCode = 3;
-							errorMessage = "String na linha "+
-							t.specialToken.beginLine + ", coluna "+t.specialToken.beginColumn + " nunca foi fechada.";
+						else if (t.specialToken != null && t.specialToken.kind == STRING_START) {
+							errorCode = 3;
+							errorMessage = "String na linha " + t.specialToken.beginLine
+								+ ", coluna " + t.specialToken.beginColumn + " nunca foi fechada.";
 						}
-						
-					break outerloop;
-					case IDENTIFIER_ERR : 
-					errorCode = 1;
-					errorMessage = "Identificador muito longo na linha " +
-						t.beginLine + ", coluna "+t.beginColumn +
-						". Tamanho máximo é 63 caracteres.";
-					break outerloop;
+						break outerloop;
+					case IDENTIFIER_ERR :
+						errorCode = 1;
+						errorMessage = "Identificador muito longo na linha " + t.beginLine
+							+ ", coluna " + t.beginColumn + ". Tamanho máximo é 63 caracteres.";
+						break outerloop;
 					default:
-					break outerloop;
+						break outerloop;
 				}
 				previousT = t;
 
 				int spaces = 0;
 				spaces = 16 - tokenName.length();
 
-				for (int i=0;i<spaces;i++)
+				for (int i = 0; i < spaces; i++)
 					result = result + " ";
 
 				result = result + tokenName + ": " + t.image + "\n";
@@ -262,105 +290,124 @@ public class JASON {
 				break;
 			}
 		}
-		return result;	}}
+		return result;
+	}
+}
 
 PARSER_END(JASON)
 
 SKIP :
 {
-  " "
-| "\r"
-| "\r\n"
-| "\t"
-| "\n"
+	 " "
+	| "\r"
+	| "\r\n"
+	| "\t"
+	| "\n"
 }
 
 SPECIAL_TOKEN:
 {
-  <COMMENT_LINE: "#" (~["\n","\r","\r"])* >
-| < COMMENT_INNER : "{" >: IN_COMMENT
-| < COMMENT_BLOCK : "{" (~["}"])* "}" >
+	<COMMENT_LINE: "#" (~["\n","\r","\r"])* >
+	| < COMMENT_INNER : "{" >: IN_COMMENT
+	| < COMMENT_BLOCK : "{" (~["}"])* "}" >
 }
 
 
-< IN_COMMENT > TOKEN : {
-  < COMMENT_CORE: (~["}"])* > : DEFAULT
+< IN_COMMENT > TOKEN :
+{
+	< COMMENT_CORE: (~["}"])* > : DEFAULT
 }
 
 TOKEN [IGNORE_CASE] : /* RESERVED WORDS */
 {
-  < ARRAY : "ARRAY" >
-| < BEGIN : "BEGIN" >
-| < CALL : "CALL" >
-| < DO : "DO" >
-| < ELSE : "ELSE" >
-| < END : "END" >
-| < ENDIF : "ENDIF" >
-| < ENDUNTIL : "ENDUNTIL" >
-| < ENDWHILE : "ENDWHILE" >
-| < FUNCTION : "FUNCTION" >
-| < IF : "IF" >
-| < INTEGER : "INTEGER" >
-| < PARAMETERS : "PARAMETERS" >
-| < PROCEDURE : "PROCEDURE" >
-| < RETURNS : "RETURNS" >
-| < PROGRAM : "PROGRAM" >
-| < READ : "READ" >
-| < REAL : "REAL" >
-| < RECORD : "RECORD" >
-| < RETURN : "RETURN" >
-| < SET : "SET" >
-| < STRING : "STRING" >
-| < THEN : "THEN" >
-| < TYPES : "TYPES" >
-| < UNTIL : "UNTIL" >
-| < VAR : "VAR" >
-| < VARIABLES : "VARIABLES" >
-| < WHILE : "WHILE" >
-| < WRITE : "WRITE" >
-| < BOOLEAN : "BOOLEAN" >
-| < TRUE : "TRUE" >
-| < FALSE : "FALSE" >
-| < DEFINE : "DEFINE" >
+	< ARRAY : "ARRAY" >
+	| < BEGIN : "BEGIN" >
+	| < CALL : "CALL" >
+	| < DO : "DO" >
+	| < ELSE : "ELSE" >
+	| < END : "END" >
+	| < ENDIF : "ENDIF" >
+	| < ENDUNTIL : "ENDUNTIL" >
+	| < ENDWHILE : "ENDWHILE" >
+	| < FUNCTION : "FUNCTION" >
+	| < IF : "IF" >
+	| < INTEGER : "INTEGER" >
+	| < PARAMETERS : "PARAMETERS" >
+	| < PROCEDURE : "PROCEDURE" >
+	| < RETURNS : "RETURNS" >
+	| < PROGRAM : "PROGRAM" >
+	| < READ : "READ" >
+	| < REAL : "REAL" >
+	| < RECORD : "RECORD" >
+	| < RETURN : "RETURN" >
+	| < SET : "SET" >
+	| < STRING : "STRING" >
+	| < THEN : "THEN" >
+	| < TYPES : "TYPES" >
+	| < UNTIL : "UNTIL" >
+	| < VAR : "VAR" >
+	| < VARIABLES : "VARIABLES" >
+	| < WHILE : "WHILE" >
+	| < WRITE : "WRITE" >
+	| < BOOLEAN : "BOOLEAN" >
+	| < TRUE : "TRUE" >
+	| < FALSE : "FALSE" >
+	| < DEFINE : "DEFINE" >
 }
 
 TOKEN : /* OPERATORS */
 {
-  < OP_ADD : "+" | "-" >
-| < OP_MULT : "*" | "/" | "%" >  
-| < OP_REL: "=" | "<" | ">"| "<=" | ">=" | "!" >
+	< OP_ADD : "+" >
+	| < OP_SUB : "-" >
+	| < OP_MULT : "*" >
+	| < OP_DIV : "/" >
+	| < OP_MOD : "%" >
+	| < OP_EQ: "=" >
+	| < OP_LESS: "<"  >
+	| < OP_GREAT: ">" >
+	| < OP_LESS_EQ: "<="  >
+	| < OP_GREAT_EQ: ">=" >
+	| < OP_NOT_EQ: "!" >
 }
 
 TOKEN : /* SYMBOLS */
 {
-  < BRACKET_OPEN : "[" >
-| < BRACKET_CLOSE : "]" >
-| < PARETHESIS_OPEN : "(" >
-| < PARETHESIS_CLOSE: ")" >
-| < COMMA : "," >
-| < DOT : "." >
-| < SEMICOLON  : ";" >
-| < AND : "&" >
-| < OR : "\\" >
-| < NOT : "~" >
+	< BRACKET_OPEN : "[" >
+	| < BRACKET_CLOSE : "]" >
+	| < PARETHESIS_OPEN : "(" >
+	| < PARETHESIS_CLOSE: ")" >
+	| < COMMA : "," >
+	| < DOT : "." >
+	| < SEMICOLON  : ";" >
+	| < AND : "&" >
+	| < OR : "\\" >
+	| < NOT : "~" >
 }
 
 TOKEN :
 {
-  < INTEGER_CONST : (< DIGIT >)+ >
-| < REAL_CONST : (< DIGIT >)+"."(< DIGIT >)* | "."(< DIGIT >)+ >
-| < #DIGIT : [ "0"-"9" ] >
+	< INTEGER_CONST : (< DIGIT >)+ >
+	| < REAL_CONST : (< DIGIT >)+"."(< DIGIT >)* | "."(< DIGIT >)+ >
+	| < #DIGIT : [ "0"-"9" ] >
 }
 
 TOKEN [IGNORE_CASE]:
 {
-  < IDENTIFIER : [ "a"-"z", "_" ]([ "a"-"z" , "0"-"9", "_"]){0,62} >
-  | < IDENTIFIER_ERR : [ "a"-"z", "_" ]([ "a"-"z" , "0"-"9", "_"]){63,} >
+	< IDENTIFIER : [ "a"-"z", "_" ]([ "a"-"z" , "0"-"9", "_"]){0,62} >
+	| < IDENTIFIER_ERR : [ "a"-"z", "_" ]([ "a"-"z" , "0"-"9", "_"]){63,} >
 }
 
-SPECIAL_TOKEN:{  < STRING_START : "\"" >: IN_STRING}< IN_STRING > TOKEN :{  < STRING_CORE:  (~["\""])* > : DEFAULT }
+SPECIAL_TOKEN:
+{
+	< STRING_START : "\"" >: IN_STRING
+}
+
+< IN_STRING > TOKEN :
+{
+	< STRING_CORE:  (~["\""])* > : DEFAULT
+}
 
 TOKEN [IGNORE_CASE]:
 {
-  < STRING_CONST : "\"" (~["\""])*  "\"" > 
-}                     
+	< STRING_CONST : "\"" (~["\""])*  "\"" >
+}

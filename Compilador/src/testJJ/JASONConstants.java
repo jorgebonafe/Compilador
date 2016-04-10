@@ -87,45 +87,61 @@ public interface JASONConstants {
   /** RegularExpression Id. */
   int OP_ADD = 43;
   /** RegularExpression Id. */
-  int OP_MULT = 44;
+  int OP_SUB = 44;
   /** RegularExpression Id. */
-  int OP_REL = 45;
+  int OP_MULT = 45;
   /** RegularExpression Id. */
-  int BRACKET_OPEN = 46;
+  int OP_DIV = 46;
   /** RegularExpression Id. */
-  int BRACKET_CLOSE = 47;
+  int OP_MOD = 47;
   /** RegularExpression Id. */
-  int PARETHESIS_OPEN = 48;
+  int OP_EQ = 48;
   /** RegularExpression Id. */
-  int PARETHESIS_CLOSE = 49;
+  int OP_LESS = 49;
   /** RegularExpression Id. */
-  int COMMA = 50;
+  int OP_GREAT = 50;
   /** RegularExpression Id. */
-  int DOT = 51;
+  int OP_LESS_EQ = 51;
   /** RegularExpression Id. */
-  int SEMICOLON = 52;
+  int OP_GREAT_EQ = 52;
   /** RegularExpression Id. */
-  int AND = 53;
+  int OP_NOT_EQ = 53;
   /** RegularExpression Id. */
-  int OR = 54;
+  int BRACKET_OPEN = 54;
   /** RegularExpression Id. */
-  int NOT = 55;
+  int BRACKET_CLOSE = 55;
   /** RegularExpression Id. */
-  int INTEGER_CONST = 56;
+  int PARETHESIS_OPEN = 56;
   /** RegularExpression Id. */
-  int REAL_CONST = 57;
+  int PARETHESIS_CLOSE = 57;
   /** RegularExpression Id. */
-  int DIGIT = 58;
+  int COMMA = 58;
   /** RegularExpression Id. */
-  int IDENTIFIER = 59;
+  int DOT = 59;
   /** RegularExpression Id. */
-  int IDENTIFIER_ERR = 60;
+  int SEMICOLON = 60;
   /** RegularExpression Id. */
-  int STRING_START = 61;
+  int AND = 61;
   /** RegularExpression Id. */
-  int STRING_CORE = 62;
+  int OR = 62;
   /** RegularExpression Id. */
-  int STRING_CONST = 63;
+  int NOT = 63;
+  /** RegularExpression Id. */
+  int INTEGER_CONST = 64;
+  /** RegularExpression Id. */
+  int REAL_CONST = 65;
+  /** RegularExpression Id. */
+  int DIGIT = 66;
+  /** RegularExpression Id. */
+  int IDENTIFIER = 67;
+  /** RegularExpression Id. */
+  int IDENTIFIER_ERR = 68;
+  /** RegularExpression Id. */
+  int STRING_START = 69;
+  /** RegularExpression Id. */
+  int STRING_CORE = 70;
+  /** RegularExpression Id. */
+  int STRING_CONST = 71;
 
   /** Lexical state. */
   int DEFAULT = 0;
@@ -179,9 +195,17 @@ public interface JASONConstants {
     "\"TRUE\"",
     "\"FALSE\"",
     "\"DEFINE\"",
-    "<OP_ADD>",
-    "<OP_MULT>",
-    "<OP_REL>",
+    "\"+\"",
+    "\"-\"",
+    "\"*\"",
+    "\"/\"",
+    "\"%\"",
+    "\"=\"",
+    "\"<\"",
+    "\">\"",
+    "\"<=\"",
+    "\">=\"",
+    "\"!\"",
     "\"[\"",
     "\"]\"",
     "\"(\"",
