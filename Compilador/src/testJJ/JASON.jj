@@ -486,5 +486,4 @@ void VariableEx(): {} { (<DOT> <IDENTIFIER> ( <BRACKET_OPEN> Expression() <BRACK
 void RelOp(): {} { ( <OP_EQUALS> | <OP_DIFFERENT> | <OP_GREATER_OR_EQUAL> | <OP_LESS_OR_EQUAL> | <OP_LESS> | <OP_GREATER> ) }
 void AddOp(): {} { ( <OP_ADD> | <OP_SUB> ) }
 void MultOp(): {} { ( <OP_MULT> | <OP_DIV> | <OP_MOD> ) }
-
 void Argument(): {} { Condition() }
