@@ -29,6 +29,7 @@ public class JASON implements JASONConstants {
                         errorMessage += e.getMessage() + "\u005cn";
                         ReInit(System.in);
                 } catch (Error e) {
+                        errorCode = 4;
                         errorMessage += e.getMessage() + "\u005cn";
                 }
 
@@ -329,7 +330,7 @@ public class JASON implements JASONConstants {
   }
 
   final public void DefineDeclSec() throws ParseException {
-    if (jj_2_1(2)) {
+    if (jj_2_1(3)) {
       jj_consume_token(DEFINE);
       DefineDecls();
     } else {
@@ -341,7 +342,7 @@ public class JASON implements JASONConstants {
     label_1:
     while (true) {
       DefineDecl();
-      if (jj_2_2(2)) {
+      if (jj_2_2(3)) {
         ;
       } else {
         break label_1;
@@ -357,21 +358,21 @@ public class JASON implements JASONConstants {
   }
 
   final public void Values() throws ParseException {
-    if (jj_2_6(2)) {
-      if (jj_2_3(2)) {
+    if (jj_2_6(3)) {
+      if (jj_2_3(3)) {
         jj_consume_token(OP_SUB);
       } else {
         ;
       }
-      if (jj_2_4(2)) {
+      if (jj_2_4(3)) {
         jj_consume_token(INTEGER_CONST);
-      } else if (jj_2_5(2)) {
+      } else if (jj_2_5(3)) {
         jj_consume_token(REAL_CONST);
       } else {
         jj_consume_token(-1);
         throw new ParseException();
       }
-    } else if (jj_2_7(2)) {
+    } else if (jj_2_7(3)) {
       jj_consume_token(STRING_CONST);
     } else {
       jj_consume_token(-1);
@@ -380,7 +381,7 @@ public class JASON implements JASONConstants {
   }
 
   final public void TypeDeclSec() throws ParseException {
-    if (jj_2_8(2)) {
+    if (jj_2_8(3)) {
       jj_consume_token(TYPES);
       TypeDecls();
     } else {
@@ -392,7 +393,7 @@ public class JASON implements JASONConstants {
     label_2:
     while (true) {
       TypeDecl();
-      if (jj_2_9(2)) {
+      if (jj_2_9(3)) {
         ;
       } else {
         break label_2;
@@ -406,9 +407,9 @@ public class JASON implements JASONConstants {
   }
 
   final public void TypeSpecification() throws ParseException {
-    if (jj_2_10(2)) {
+    if (jj_2_10(3)) {
       ArraySpecification();
-    } else if (jj_2_11(2)) {
+    } else if (jj_2_11(3)) {
       RecordSpecification();
     } else {
       jj_consume_token(-1);
@@ -420,15 +421,15 @@ public class JASON implements JASONConstants {
     jj_consume_token(ARRAY);
     DataType();
     jj_consume_token(BRACKET_OPEN);
-    if (jj_2_12(2)) {
+    if (jj_2_12(3)) {
       jj_consume_token(INTEGER_CONST);
-    } else if (jj_2_13(2)) {
+    } else if (jj_2_13(3)) {
       jj_consume_token(REAL_CONST);
     } else {
       jj_consume_token(-1);
       throw new ParseException();
     }
-    jj_consume_token(BRACKET_OPEN);
+    jj_consume_token(BRACKET_CLOSE);
     jj_consume_token(SEMICOLON);
   }
 
@@ -440,7 +441,7 @@ public class JASON implements JASONConstants {
   }
 
   final public void VarDeclSec() throws ParseException {
-    if (jj_2_14(2)) {
+    if (jj_2_14(3)) {
       jj_consume_token(VARIABLES);
       VarDecls();
     } else {
@@ -452,7 +453,7 @@ public class JASON implements JASONConstants {
     label_3:
     while (true) {
       VarDecl();
-      if (jj_2_15(2)) {
+      if (jj_2_15(3)) {
         ;
       } else {
         break label_3;
@@ -467,15 +468,15 @@ public class JASON implements JASONConstants {
   }
 
   final public void DataType() throws ParseException {
-    if (jj_2_16(2)) {
+    if (jj_2_16(3)) {
       jj_consume_token(REAL);
-    } else if (jj_2_17(2)) {
+    } else if (jj_2_17(3)) {
       jj_consume_token(INTEGER);
-    } else if (jj_2_18(2)) {
+    } else if (jj_2_18(3)) {
       jj_consume_token(IDENTIFIER);
-    } else if (jj_2_19(2)) {
+    } else if (jj_2_19(3)) {
       jj_consume_token(STRING);
-    } else if (jj_2_20(2)) {
+    } else if (jj_2_20(3)) {
       jj_consume_token(BOOLEAN);
     } else {
       jj_consume_token(-1);
@@ -487,7 +488,7 @@ public class JASON implements JASONConstants {
     jj_consume_token(IDENTIFIER);
     label_4:
     while (true) {
-      if (jj_2_21(2)) {
+      if (jj_2_21(3)) {
         ;
       } else {
         break label_4;
@@ -500,7 +501,7 @@ public class JASON implements JASONConstants {
   final public void SubProgramDecls() throws ParseException {
     label_5:
     while (true) {
-      if (jj_2_22(2)) {
+      if (jj_2_22(3)) {
         ;
       } else {
         break label_5;
@@ -510,9 +511,9 @@ public class JASON implements JASONConstants {
   }
 
   final public void SubProgramDecl() throws ParseException {
-    if (jj_2_23(2)) {
+    if (jj_2_23(3)) {
       ProcDecl();
-    } else if (jj_2_24(2)) {
+    } else if (jj_2_24(3)) {
       FunctionDecl();
     } else {
       jj_consume_token(-1);
@@ -539,7 +540,7 @@ public class JASON implements JASONConstants {
   }
 
   final public void ParamDeclSec() throws ParseException {
-    if (jj_2_25(2)) {
+    if (jj_2_25(3)) {
       jj_consume_token(PARAMETERS);
       ParamDecls();
     } else {
@@ -548,11 +549,19 @@ public class JASON implements JASONConstants {
   }
 
   final public void ParamDecls() throws ParseException {
-    ParamDecl();
+    label_6:
+    while (true) {
+      ParamDecl();
+      if (jj_2_26(3)) {
+        ;
+      } else {
+        break label_6;
+      }
+    }
   }
 
   final public void ParamDecl() throws ParseException {
-    if (jj_2_26(2)) {
+    if (jj_2_27(3)) {
       jj_consume_token(VAR);
     } else {
       ;
@@ -587,12 +596,12 @@ public class JASON implements JASONConstants {
 //Comandos
   final public void Statements() throws ParseException {
     Statement();
-    label_6:
+    label_7:
     while (true) {
-      if (jj_2_27(2)) {
+      if (jj_2_28(3)) {
         ;
       } else {
-        break label_6;
+        break label_7;
       }
       jj_consume_token(SEMICOLON);
       Statement();
@@ -600,37 +609,37 @@ public class JASON implements JASONConstants {
   }
 
   final public void Statement() throws ParseException {
-    if (jj_2_35(2)) {
-      if (jj_2_28(2)) {
+    if (jj_2_36(3)) {
+      if (jj_2_29(3)) {
         jj_consume_token(READ);
         Variable();
-      } else if (jj_2_29(2)) {
+      } else if (jj_2_30(3)) {
         jj_consume_token(SET);
         Variable();
         jj_consume_token(OP_EQUALS);
         Expression();
-      } else if (jj_2_30(2)) {
+      } else if (jj_2_31(3)) {
         jj_consume_token(WRITE);
         Variable();
-      } else if (jj_2_31(2)) {
+      } else if (jj_2_32(3)) {
         jj_consume_token(IF);
         Condition();
         jj_consume_token(THEN);
         Statements();
         ElseClause();
-      } else if (jj_2_32(2)) {
+      } else if (jj_2_33(3)) {
         jj_consume_token(WHILE);
         Condition();
         jj_consume_token(DO);
         Statements();
         jj_consume_token(ENDWHILE);
-      } else if (jj_2_33(2)) {
+      } else if (jj_2_34(3)) {
         jj_consume_token(UNTIL);
         Condition();
         jj_consume_token(DO);
         Statements();
         jj_consume_token(ENDUNTIL);
-      } else if (jj_2_34(2)) {
+      } else if (jj_2_35(3)) {
         jj_consume_token(CALL);
         jj_consume_token(IDENTIFIER);
         ArgList();
@@ -644,7 +653,7 @@ public class JASON implements JASONConstants {
   }
 
   final public void ElseClause() throws ParseException {
-    if (jj_2_36(2)) {
+    if (jj_2_37(3)) {
       jj_consume_token(ELSE);
       Statements();
     } else {
@@ -662,7 +671,7 @@ public class JASON implements JASONConstants {
   }
 
   final public void ArgList() throws ParseException {
-    if (jj_2_37(2)) {
+    if (jj_2_38(3)) {
       jj_consume_token(PARETHESIS_OPEN);
       Arguments();
       jj_consume_token(PARETHESIS_CLOSE);
@@ -673,12 +682,12 @@ public class JASON implements JASONConstants {
 
   final public void Arguments() throws ParseException {
     Argument();
-    label_7:
+    label_8:
     while (true) {
-      if (jj_2_38(2)) {
+      if (jj_2_39(3)) {
         ;
       } else {
-        break label_7;
+        break label_8;
       }
       jj_consume_token(COMMA);
       Argument();
@@ -688,12 +697,12 @@ public class JASON implements JASONConstants {
 //Expressões
   final public void Condition() throws ParseException {
     CompoundCondition();
-    label_8:
+    label_9:
     while (true) {
-      if (jj_2_39(2)) {
+      if (jj_2_40(3)) {
         ;
       } else {
-        break label_8;
+        break label_9;
       }
       jj_consume_token(OR);
       CompoundCondition();
@@ -702,12 +711,12 @@ public class JASON implements JASONConstants {
 
   final public void CompoundCondition() throws ParseException {
     SimpleCondition();
-    label_9:
+    label_10:
     while (true) {
-      if (jj_2_40(2)) {
+      if (jj_2_41(3)) {
         ;
       } else {
-        break label_9;
+        break label_10;
       }
       jj_consume_token(AND);
       SimpleCondition();
@@ -716,7 +725,7 @@ public class JASON implements JASONConstants {
 
   final public void SimpleCondition() throws ParseException {
     Expression();
-    if (jj_2_41(2)) {
+    if (jj_2_42(3)) {
       RelOp();
       Expression();
     } else {
@@ -726,12 +735,12 @@ public class JASON implements JASONConstants {
 
   final public void Expression() throws ParseException {
     Term();
-    label_10:
+    label_11:
     while (true) {
-      if (jj_2_42(2)) {
+      if (jj_2_43(3)) {
         ;
       } else {
-        break label_10;
+        break label_11;
       }
       AddOp();
       Term();
@@ -740,12 +749,12 @@ public class JASON implements JASONConstants {
 
   final public void Term() throws ParseException {
     Unary();
-    label_11:
+    label_12:
     while (true) {
-      if (jj_2_43(2)) {
+      if (jj_2_44(3)) {
         ;
       } else {
-        break label_11;
+        break label_12;
       }
       MultOp();
       Unary();
@@ -753,10 +762,10 @@ public class JASON implements JASONConstants {
   }
 
   final public void Unary() throws ParseException {
-    if (jj_2_46(2)) {
-      if (jj_2_44(2)) {
+    if (jj_2_47(3)) {
+      if (jj_2_45(3)) {
         jj_consume_token(OP_ADD);
-      } else if (jj_2_45(2)) {
+      } else if (jj_2_46(3)) {
         jj_consume_token(OP_SUB);
       } else {
         jj_consume_token(-1);
@@ -769,27 +778,27 @@ public class JASON implements JASONConstants {
   }
 
   final public void Factor() throws ParseException {
-    if (jj_2_49(2)) {
+    if (jj_2_50(3)) {
       Id();
-    } else if (jj_2_50(2)) {
-      if (jj_2_47(2)) {
+    } else if (jj_2_51(3)) {
+      if (jj_2_48(3)) {
         jj_consume_token(INTEGER_CONST);
-      } else if (jj_2_48(2)) {
+      } else if (jj_2_49(3)) {
         jj_consume_token(REAL_CONST);
       } else {
         jj_consume_token(-1);
         throw new ParseException();
       }
-    } else if (jj_2_51(2)) {
+    } else if (jj_2_52(3)) {
       jj_consume_token(STRING_CONST);
-    } else if (jj_2_52(2)) {
+    } else if (jj_2_53(3)) {
       jj_consume_token(NOT);
       Factor();
-    } else if (jj_2_53(2)) {
+    } else if (jj_2_54(3)) {
       jj_consume_token(PARETHESIS_OPEN);
       Condition();
       jj_consume_token(PARETHESIS_CLOSE);
-    } else if (jj_2_54(2)) {
+    } else if (jj_2_55(3)) {
       Bool();
     } else {
       jj_consume_token(-1);
@@ -798,9 +807,9 @@ public class JASON implements JASONConstants {
   }
 
   final public void Bool() throws ParseException {
-    if (jj_2_55(2)) {
+    if (jj_2_56(3)) {
       jj_consume_token(TRUE);
-    } else if (jj_2_56(2)) {
+    } else if (jj_2_57(3)) {
       jj_consume_token(FALSE);
     } else {
       jj_consume_token(-1);
@@ -815,10 +824,10 @@ public class JASON implements JASONConstants {
 
   final public void Variable() throws ParseException {
     jj_consume_token(IDENTIFIER);
-    if (jj_2_58(2)) {
+    if (jj_2_59(3)) {
       jj_consume_token(BRACKET_OPEN);
       Expression();
-      jj_consume_token(BRACKET_OPEN);
+      jj_consume_token(BRACKET_CLOSE);
     } else {
       ;
     }
@@ -826,19 +835,19 @@ public class JASON implements JASONConstants {
   }
 
   final public void VariableEx() throws ParseException {
-    label_12:
+    label_13:
     while (true) {
-      if (jj_2_59(2)) {
+      if (jj_2_60(3)) {
         ;
       } else {
-        break label_12;
+        break label_13;
       }
       jj_consume_token(DOT);
       jj_consume_token(IDENTIFIER);
-      if (jj_2_60(2)) {
+      if (jj_2_61(3)) {
         jj_consume_token(BRACKET_OPEN);
         Expression();
-        jj_consume_token(BRACKET_OPEN);
+        jj_consume_token(BRACKET_CLOSE);
       } else {
         ;
       }
@@ -846,17 +855,17 @@ public class JASON implements JASONConstants {
   }
 
   final public void RelOp() throws ParseException {
-    if (jj_2_61(2)) {
+    if (jj_2_62(3)) {
       jj_consume_token(OP_EQUALS);
-    } else if (jj_2_62(2)) {
+    } else if (jj_2_63(3)) {
       jj_consume_token(OP_DIFFERENT);
-    } else if (jj_2_63(2)) {
+    } else if (jj_2_64(3)) {
       jj_consume_token(OP_GREATER_OR_EQUAL);
-    } else if (jj_2_64(2)) {
+    } else if (jj_2_65(3)) {
       jj_consume_token(OP_LESS_OR_EQUAL);
-    } else if (jj_2_65(2)) {
+    } else if (jj_2_66(3)) {
       jj_consume_token(OP_LESS);
-    } else if (jj_2_66(2)) {
+    } else if (jj_2_67(3)) {
       jj_consume_token(OP_GREATER);
     } else {
       jj_consume_token(-1);
@@ -865,9 +874,9 @@ public class JASON implements JASONConstants {
   }
 
   final public void AddOp() throws ParseException {
-    if (jj_2_67(2)) {
+    if (jj_2_68(3)) {
       jj_consume_token(OP_ADD);
-    } else if (jj_2_68(2)) {
+    } else if (jj_2_69(3)) {
       jj_consume_token(OP_SUB);
     } else {
       jj_consume_token(-1);
@@ -876,11 +885,11 @@ public class JASON implements JASONConstants {
   }
 
   final public void MultOp() throws ParseException {
-    if (jj_2_69(2)) {
+    if (jj_2_70(3)) {
       jj_consume_token(OP_MULT);
-    } else if (jj_2_70(2)) {
+    } else if (jj_2_71(3)) {
       jj_consume_token(OP_DIV);
-    } else if (jj_2_71(2)) {
+    } else if (jj_2_72(3)) {
       jj_consume_token(OP_MOD);
     } else {
       jj_consume_token(-1);
@@ -1389,40 +1398,48 @@ public class JASON implements JASONConstants {
     finally { jj_save(70, xla); }
   }
 
-  private boolean jj_3_52() {
+  private boolean jj_2_72(int xla) {
+    jj_la = xla; jj_lastpos = jj_scanpos = token;
+    try { return !jj_3_72(); }
+    catch(LookaheadSuccess ls) { return true; }
+    finally { jj_save(71, xla); }
+  }
+
+  private boolean jj_3_53() {
     if (jj_scan_token(NOT)) return true;
-    if (jj_3R_40()) return true;
+    if (jj_3R_43()) return true;
     return false;
   }
 
-  private boolean jj_3_64() {
+  private boolean jj_3_65() {
     if (jj_scan_token(OP_LESS_OR_EQUAL)) return true;
     return false;
   }
 
-  private boolean jj_3_30() {
+  private boolean jj_3_31() {
     if (jj_scan_token(WRITE)) return true;
-    if (jj_3R_26()) return true;
+    if (jj_3R_28()) return true;
     return false;
   }
 
-  private boolean jj_3_51() {
+  private boolean jj_3_52() {
     if (jj_scan_token(STRING_CONST)) return true;
     return false;
   }
 
-  private boolean jj_3_34() {
+  private boolean jj_3_35() {
     if (jj_scan_token(CALL)) return true;
     if (jj_scan_token(IDENTIFIER)) return true;
+    if (jj_3R_30()) return true;
     return false;
   }
 
-  private boolean jj_3_63() {
+  private boolean jj_3_64() {
     if (jj_scan_token(OP_GREATER_OR_EQUAL)) return true;
     return false;
   }
 
-  private boolean jj_3_71() {
+  private boolean jj_3_72() {
     if (jj_scan_token(OP_MOD)) return true;
     return false;
   }
@@ -1432,33 +1449,35 @@ public class JASON implements JASONConstants {
     return false;
   }
 
-  private boolean jj_3_60() {
+  private boolean jj_3_61() {
     if (jj_scan_token(BRACKET_OPEN)) return true;
-    if (jj_3R_34()) return true;
+    if (jj_3R_37()) return true;
+    if (jj_scan_token(BRACKET_CLOSE)) return true;
     return false;
   }
 
-  private boolean jj_3_48() {
+  private boolean jj_3_49() {
     if (jj_scan_token(REAL_CONST)) return true;
     return false;
   }
 
-  private boolean jj_3_57() {
+  private boolean jj_3_58() {
     if (jj_scan_token(BRACKET_OPEN)) return true;
-    if (jj_3R_34()) return true;
+    if (jj_3R_37()) return true;
+    if (jj_scan_token(BRACKET_CLOSE)) return true;
     return false;
   }
 
-  private boolean jj_3_40() {
+  private boolean jj_3_41() {
     if (jj_scan_token(AND)) return true;
-    if (jj_3R_32()) return true;
+    if (jj_3R_35()) return true;
     return false;
   }
 
-  private boolean jj_3R_49() {
+  private boolean jj_3R_53() {
     Token xsp;
     xsp = jj_scanpos;
-    if (jj_3_57()) jj_scanpos = xsp;
+    if (jj_3_58()) jj_scanpos = xsp;
     if (jj_3R_51()) return true;
     return false;
   }
@@ -1468,52 +1487,54 @@ public class JASON implements JASONConstants {
     return false;
   }
 
-  private boolean jj_3_70() {
+  private boolean jj_3_71() {
     if (jj_scan_token(OP_DIV)) return true;
     return false;
   }
 
-  private boolean jj_3_58() {
+  private boolean jj_3_59() {
     if (jj_scan_token(BRACKET_OPEN)) return true;
-    if (jj_3R_34()) return true;
+    if (jj_3R_37()) return true;
+    if (jj_scan_token(BRACKET_CLOSE)) return true;
     return false;
   }
 
-  private boolean jj_3_62() {
+  private boolean jj_3_63() {
     if (jj_scan_token(OP_DIFFERENT)) return true;
     return false;
   }
 
-  private boolean jj_3_39() {
+  private boolean jj_3_40() {
     if (jj_scan_token(OR)) return true;
-    if (jj_3R_31()) return true;
-    return false;
-  }
-
-  private boolean jj_3_41() {
-    if (jj_3R_33()) return true;
     if (jj_3R_34()) return true;
     return false;
   }
 
-  private boolean jj_3_68() {
+  private boolean jj_3_42() {
+    if (jj_3R_36()) return true;
+    if (jj_3R_37()) return true;
+    return false;
+  }
+
+  private boolean jj_3_69() {
     if (jj_scan_token(OP_SUB)) return true;
     return false;
   }
 
-  private boolean jj_3R_48() {
-    if (jj_3R_50()) return true;
+  private boolean jj_3R_52() {
+    if (jj_3R_30()) return true;
     return false;
   }
 
-  private boolean jj_3_45() {
+  private boolean jj_3_46() {
     if (jj_scan_token(OP_SUB)) return true;
     return false;
   }
 
-  private boolean jj_3_29() {
+  private boolean jj_3_30() {
     if (jj_scan_token(SET)) return true;
-    if (jj_3R_26()) return true;
+    if (jj_3R_28()) return true;
+    if (jj_scan_token(OP_EQUALS)) return true;
     return false;
   }
 
@@ -1522,8 +1543,8 @@ public class JASON implements JASONConstants {
     return false;
   }
 
-  private boolean jj_3R_30() {
-    if (jj_3R_27()) return true;
+  private boolean jj_3R_33() {
+    if (jj_3R_29()) return true;
     return false;
   }
 
@@ -1532,18 +1553,18 @@ public class JASON implements JASONConstants {
     return false;
   }
 
-  private boolean jj_3_42() {
-    if (jj_3R_35()) return true;
-    if (jj_3R_36()) return true;
+  private boolean jj_3_43() {
+    if (jj_3R_38()) return true;
+    if (jj_3R_39()) return true;
     return false;
   }
 
-  private boolean jj_3_47() {
+  private boolean jj_3_48() {
     if (jj_scan_token(INTEGER_CONST)) return true;
     return false;
   }
 
-  private boolean jj_3_56() {
+  private boolean jj_3_57() {
     if (jj_scan_token(FALSE)) return true;
     return false;
   }
@@ -1553,23 +1574,26 @@ public class JASON implements JASONConstants {
     return false;
   }
 
-  private boolean jj_3_50() {
+  private boolean jj_3_51() {
     Token xsp;
     xsp = jj_scanpos;
-    if (jj_3_47()) {
+    if (jj_3_48()) {
     jj_scanpos = xsp;
-    if (jj_3_48()) return true;
+    if (jj_3_49()) return true;
     }
     return false;
   }
 
-  private boolean jj_3_59() {
+  private boolean jj_3_60() {
     if (jj_scan_token(DOT)) return true;
     if (jj_scan_token(IDENTIFIER)) return true;
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3_61()) jj_scanpos = xsp;
     return false;
   }
 
-  private boolean jj_3_69() {
+  private boolean jj_3_70() {
     if (jj_scan_token(OP_MULT)) return true;
     return false;
   }
@@ -1578,76 +1602,86 @@ public class JASON implements JASONConstants {
     Token xsp;
     while (true) {
       xsp = jj_scanpos;
-      if (jj_3_59()) { jj_scanpos = xsp; break; }
+      if (jj_3_60()) { jj_scanpos = xsp; break; }
     }
     return false;
   }
 
-  private boolean jj_3R_37() {
+  private boolean jj_3R_40() {
     Token xsp;
     xsp = jj_scanpos;
-    if (jj_3_69()) {
-    jj_scanpos = xsp;
     if (jj_3_70()) {
     jj_scanpos = xsp;
-    if (jj_3_71()) return true;
+    if (jj_3_71()) {
+    jj_scanpos = xsp;
+    if (jj_3_72()) return true;
     }
     }
     return false;
   }
 
-  private boolean jj_3_67() {
+  private boolean jj_3_68() {
     if (jj_scan_token(OP_ADD)) return true;
     return false;
   }
 
-  private boolean jj_3R_31() {
-    if (jj_3R_32()) return true;
-    return false;
-  }
-
-  private boolean jj_3_38() {
-    if (jj_scan_token(COMMA)) return true;
-    if (jj_3R_30()) return true;
-    return false;
-  }
-
-  private boolean jj_3_43() {
-    if (jj_3R_37()) return true;
-    if (jj_3R_38()) return true;
-    return false;
-  }
-
-  private boolean jj_3_61() {
-    if (jj_scan_token(OP_EQUALS)) return true;
-    return false;
-  }
-
-  private boolean jj_3R_35() {
+  private boolean jj_3R_34() {
+    if (jj_3R_35()) return true;
     Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3_67()) {
-    jj_scanpos = xsp;
-    if (jj_3_68()) return true;
+    while (true) {
+      xsp = jj_scanpos;
+      if (jj_3_41()) { jj_scanpos = xsp; break; }
     }
     return false;
   }
 
-  private boolean jj_3R_32() {
-    if (jj_3R_34()) return true;
+  private boolean jj_3_39() {
+    if (jj_scan_token(COMMA)) return true;
+    if (jj_3R_33()) return true;
     return false;
   }
 
-  private boolean jj_3R_26() {
-    if (jj_scan_token(IDENTIFIER)) return true;
+  private boolean jj_3_44() {
+    if (jj_3R_40()) return true;
+    if (jj_3R_41()) return true;
     return false;
   }
 
-  private boolean jj_3R_33() {
+  private boolean jj_3_62() {
+    if (jj_scan_token(OP_EQUALS)) return true;
+    return false;
+  }
+
+  private boolean jj_3R_38() {
     Token xsp;
     xsp = jj_scanpos;
-    if (jj_3_61()) {
+    if (jj_3_68()) {
     jj_scanpos = xsp;
+    if (jj_3_69()) return true;
+    }
+    return false;
+  }
+
+  private boolean jj_3R_35() {
+    if (jj_3R_37()) return true;
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3_42()) jj_scanpos = xsp;
+    return false;
+  }
+
+  private boolean jj_3R_28() {
+    if (jj_scan_token(IDENTIFIER)) return true;
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3_59()) jj_scanpos = xsp;
+    if (jj_3R_51()) return true;
+    return false;
+  }
+
+  private boolean jj_3R_36() {
+    Token xsp;
+    xsp = jj_scanpos;
     if (jj_3_62()) {
     jj_scanpos = xsp;
     if (jj_3_63()) {
@@ -1656,7 +1690,9 @@ public class JASON implements JASONConstants {
     jj_scanpos = xsp;
     if (jj_3_65()) {
     jj_scanpos = xsp;
-    if (jj_3_66()) return true;
+    if (jj_3_66()) {
+    jj_scanpos = xsp;
+    if (jj_3_67()) return true;
     }
     }
     }
@@ -1665,37 +1701,40 @@ public class JASON implements JASONConstants {
     return false;
   }
 
-  private boolean jj_3_27() {
+  private boolean jj_3_28() {
     if (jj_scan_token(SEMICOLON)) return true;
-    if (jj_3R_25()) return true;
+    if (jj_3R_27()) return true;
     return false;
   }
 
-  private boolean jj_3_44() {
+  private boolean jj_3_45() {
     if (jj_scan_token(OP_ADD)) return true;
     return false;
   }
 
-  private boolean jj_3_49() {
+  private boolean jj_3_50() {
+    if (jj_3R_42()) return true;
+    return false;
+  }
+
+  private boolean jj_3R_37() {
     if (jj_3R_39()) return true;
+    Token xsp;
+    while (true) {
+      xsp = jj_scanpos;
+      if (jj_3_43()) { jj_scanpos = xsp; break; }
+    }
     return false;
   }
 
-  private boolean jj_3R_34() {
-    if (jj_3R_36()) return true;
-    return false;
-  }
-
-  private boolean jj_3_55() {
+  private boolean jj_3_56() {
     if (jj_scan_token(TRUE)) return true;
     return false;
   }
 
-  private boolean jj_3R_40() {
+  private boolean jj_3R_43() {
     Token xsp;
     xsp = jj_scanpos;
-    if (jj_3_49()) {
-    jj_scanpos = xsp;
     if (jj_3_50()) {
     jj_scanpos = xsp;
     if (jj_3_51()) {
@@ -1704,7 +1743,9 @@ public class JASON implements JASONConstants {
     jj_scanpos = xsp;
     if (jj_3_53()) {
     jj_scanpos = xsp;
-    if (jj_3_54()) return true;
+    if (jj_3_54()) {
+    jj_scanpos = xsp;
+    if (jj_3_55()) return true;
     }
     }
     }
@@ -1714,16 +1755,37 @@ public class JASON implements JASONConstants {
   }
 
   private boolean jj_3_11() {
-    if (jj_3R_18()) return true;
+    if (jj_3R_19()) return true;
     return false;
   }
 
-  private boolean jj_3_46() {
+  private boolean jj_3_47() {
     Token xsp;
     xsp = jj_scanpos;
-    if (jj_3_44()) {
+    if (jj_3_45()) {
     jj_scanpos = xsp;
-    if (jj_3_45()) return true;
+    if (jj_3_46()) return true;
+    }
+    return false;
+  }
+
+  private boolean jj_3R_44() {
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3_56()) {
+    jj_scanpos = xsp;
+    if (jj_3_57()) return true;
+    }
+    return false;
+  }
+
+  private boolean jj_3R_42() {
+    if (jj_scan_token(IDENTIFIER)) return true;
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3R_52()) {
+    jj_scanpos = xsp;
+    if (jj_3R_53()) return true;
     }
     return false;
   }
@@ -1731,44 +1793,33 @@ public class JASON implements JASONConstants {
   private boolean jj_3R_41() {
     Token xsp;
     xsp = jj_scanpos;
-    if (jj_3_55()) {
-    jj_scanpos = xsp;
-    if (jj_3_56()) return true;
+    if (jj_3_47()) jj_scanpos = xsp;
+    if (jj_3R_43()) return true;
+    return false;
+  }
+
+  private boolean jj_3R_29() {
+    if (jj_3R_34()) return true;
+    Token xsp;
+    while (true) {
+      xsp = jj_scanpos;
+      if (jj_3_40()) { jj_scanpos = xsp; break; }
     }
     return false;
   }
 
   private boolean jj_3R_39() {
-    if (jj_scan_token(IDENTIFIER)) return true;
+    if (jj_3R_41()) return true;
     Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_48()) {
-    jj_scanpos = xsp;
-    if (jj_3R_49()) return true;
+    while (true) {
+      xsp = jj_scanpos;
+      if (jj_3_44()) { jj_scanpos = xsp; break; }
     }
     return false;
   }
 
-  private boolean jj_3R_38() {
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3_46()) jj_scanpos = xsp;
-    if (jj_3R_40()) return true;
-    return false;
-  }
-
-  private boolean jj_3R_27() {
-    if (jj_3R_31()) return true;
-    return false;
-  }
-
-  private boolean jj_3R_36() {
-    if (jj_3R_38()) return true;
-    return false;
-  }
-
   private boolean jj_3_24() {
-    if (jj_3R_23()) return true;
+    if (jj_3R_24()) return true;
     return false;
   }
 
@@ -1777,14 +1828,19 @@ public class JASON implements JASONConstants {
     return false;
   }
 
-  private boolean jj_3R_29() {
-    if (jj_3R_30()) return true;
+  private boolean jj_3R_32() {
+    if (jj_3R_33()) return true;
+    Token xsp;
+    while (true) {
+      xsp = jj_scanpos;
+      if (jj_3_39()) { jj_scanpos = xsp; break; }
+    }
     return false;
   }
 
-  private boolean jj_3_36() {
+  private boolean jj_3_37() {
     if (jj_scan_token(ELSE)) return true;
-    if (jj_3R_28()) return true;
+    if (jj_3R_31()) return true;
     return false;
   }
 
@@ -1793,17 +1849,22 @@ public class JASON implements JASONConstants {
     return false;
   }
 
-  private boolean jj_3_37() {
+  private boolean jj_3_38() {
     if (jj_scan_token(PARETHESIS_OPEN)) return true;
-    if (jj_3R_29()) return true;
+    if (jj_3R_32()) return true;
+    if (jj_scan_token(PARETHESIS_CLOSE)) return true;
     return false;
   }
 
-  private boolean jj_3_35() {
+  private boolean jj_3_29() {
+    if (jj_scan_token(READ)) return true;
+    if (jj_3R_28()) return true;
+    return false;
+  }
+
+  private boolean jj_3_36() {
     Token xsp;
     xsp = jj_scanpos;
-    if (jj_3_28()) {
-    jj_scanpos = xsp;
     if (jj_3_29()) {
     jj_scanpos = xsp;
     if (jj_3_30()) {
@@ -1814,7 +1875,9 @@ public class JASON implements JASONConstants {
     jj_scanpos = xsp;
     if (jj_3_33()) {
     jj_scanpos = xsp;
-    if (jj_3_34()) return true;
+    if (jj_3_34()) {
+    jj_scanpos = xsp;
+    if (jj_3_35()) return true;
     }
     }
     }
@@ -1824,50 +1887,46 @@ public class JASON implements JASONConstants {
     return false;
   }
 
-  private boolean jj_3_28() {
-    if (jj_scan_token(READ)) return true;
-    if (jj_3R_26()) return true;
+  private boolean jj_3R_30() {
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3_38()) jj_scanpos = xsp;
+    return false;
+  }
+
+  private boolean jj_3R_31() {
+    if (jj_3R_27()) return true;
+    Token xsp;
+    while (true) {
+      xsp = jj_scanpos;
+      if (jj_3_28()) { jj_scanpos = xsp; break; }
+    }
+    return false;
+  }
+
+  private boolean jj_3R_27() {
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3_36()) jj_scanpos = xsp;
     return false;
   }
 
   private boolean jj_3R_50() {
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3_37()) jj_scanpos = xsp;
-    return false;
-  }
-
-  private boolean jj_3R_28() {
-    if (jj_3R_25()) return true;
-    Token xsp;
-    while (true) {
-      xsp = jj_scanpos;
-      if (jj_3_27()) { jj_scanpos = xsp; break; }
-    }
-    return false;
-  }
-
-  private boolean jj_3R_25() {
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3_35()) jj_scanpos = xsp;
-    return false;
-  }
-
-  private boolean jj_3R_46() {
     if (jj_scan_token(FUNCTION)) return true;
     if (jj_scan_token(IDENTIFIER)) return true;
+    if (jj_scan_token(RETURNS)) return true;
     return false;
   }
 
-  private boolean jj_3_33() {
+  private boolean jj_3_34() {
     if (jj_scan_token(UNTIL)) return true;
-    if (jj_3R_27()) return true;
+    if (jj_3R_29()) return true;
+    if (jj_scan_token(DO)) return true;
     return false;
   }
 
-  private boolean jj_3R_23() {
-    if (jj_3R_46()) return true;
+  private boolean jj_3R_24() {
+    if (jj_3R_50()) return true;
     return false;
   }
 
@@ -1879,17 +1938,22 @@ public class JASON implements JASONConstants {
 
   private boolean jj_3_25() {
     if (jj_scan_token(PARAMETERS)) return true;
-    if (jj_3R_24()) return true;
+    if (jj_3R_25()) return true;
     return false;
   }
 
-  private boolean jj_3_26() {
+  private boolean jj_3_27() {
     if (jj_scan_token(VAR)) return true;
     return false;
   }
 
+  private boolean jj_3_26() {
+    if (jj_3R_26()) return true;
+    return false;
+  }
+
   private boolean jj_3_23() {
-    if (jj_3R_22()) return true;
+    if (jj_3R_23()) return true;
     return false;
   }
 
@@ -1898,25 +1962,32 @@ public class JASON implements JASONConstants {
     return false;
   }
 
-  private boolean jj_3R_47() {
+  private boolean jj_3R_26() {
     Token xsp;
     xsp = jj_scanpos;
-    if (jj_3_26()) jj_scanpos = xsp;
-    if (jj_3R_43()) return true;
+    if (jj_3_27()) jj_scanpos = xsp;
+    if (jj_3R_47()) return true;
+    if (jj_scan_token(IDENTIFIER)) return true;
+    if (jj_scan_token(SEMICOLON)) return true;
     return false;
   }
 
-  private boolean jj_3R_24() {
-    if (jj_3R_47()) return true;
+  private boolean jj_3R_25() {
+    Token xsp;
+    if (jj_3_26()) return true;
+    while (true) {
+      xsp = jj_scanpos;
+      if (jj_3_26()) { jj_scanpos = xsp; break; }
+    }
     return false;
   }
 
   private boolean jj_3_22() {
-    if (jj_3R_21()) return true;
+    if (jj_3R_22()) return true;
     return false;
   }
 
-  private boolean jj_3R_21() {
+  private boolean jj_3R_22() {
     Token xsp;
     xsp = jj_scanpos;
     if (jj_3_23()) {
@@ -1926,35 +1997,37 @@ public class JASON implements JASONConstants {
     return false;
   }
 
-  private boolean jj_3R_45() {
+  private boolean jj_3R_49() {
     if (jj_scan_token(PROCEDURE)) return true;
     if (jj_scan_token(IDENTIFIER)) return true;
+    if (jj_scan_token(SEMICOLON)) return true;
+    return false;
+  }
+
+  private boolean jj_3R_19() {
+    if (jj_scan_token(RECORD)) return true;
+    if (jj_3R_20()) return true;
     return false;
   }
 
   private boolean jj_3R_18() {
-    if (jj_scan_token(RECORD)) return true;
-    if (jj_3R_19()) return true;
-    return false;
-  }
-
-  private boolean jj_3R_17() {
     if (jj_scan_token(ARRAY)) return true;
-    if (jj_3R_43()) return true;
+    if (jj_3R_47()) return true;
+    if (jj_scan_token(BRACKET_OPEN)) return true;
     return false;
   }
 
   private boolean jj_3_10() {
-    if (jj_3R_17()) return true;
+    if (jj_3R_18()) return true;
     return false;
   }
 
-  private boolean jj_3R_22() {
-    if (jj_3R_45()) return true;
+  private boolean jj_3R_23() {
+    if (jj_3R_49()) return true;
     return false;
   }
 
-  private boolean jj_3R_42() {
+  private boolean jj_3R_46() {
     Token xsp;
     xsp = jj_scanpos;
     if (jj_3_10()) {
@@ -1974,7 +2047,7 @@ public class JASON implements JASONConstants {
     return false;
   }
 
-  private boolean jj_3R_43() {
+  private boolean jj_3R_47() {
     Token xsp;
     xsp = jj_scanpos;
     if (jj_3_16()) {
@@ -1995,27 +2068,33 @@ public class JASON implements JASONConstants {
 
   private boolean jj_3_14() {
     if (jj_scan_token(VARIABLES)) return true;
-    if (jj_3R_19()) return true;
-    return false;
-  }
-
-  private boolean jj_3R_44() {
-    if (jj_scan_token(IDENTIFIER)) return true;
-    return false;
-  }
-
-  private boolean jj_3_15() {
     if (jj_3R_20()) return true;
     return false;
   }
 
-  private boolean jj_3R_20() {
-    if (jj_3R_43()) return true;
-    if (jj_3R_44()) return true;
+  private boolean jj_3R_48() {
+    if (jj_scan_token(IDENTIFIER)) return true;
+    Token xsp;
+    while (true) {
+      xsp = jj_scanpos;
+      if (jj_3_21()) { jj_scanpos = xsp; break; }
+    }
     return false;
   }
 
-  private boolean jj_3R_19() {
+  private boolean jj_3_15() {
+    if (jj_3R_21()) return true;
+    return false;
+  }
+
+  private boolean jj_3R_21() {
+    if (jj_3R_47()) return true;
+    if (jj_3R_48()) return true;
+    if (jj_scan_token(SEMICOLON)) return true;
+    return false;
+  }
+
+  private boolean jj_3R_20() {
     Token xsp;
     if (jj_3_15()) return true;
     while (true) {
@@ -2027,22 +2106,22 @@ public class JASON implements JASONConstants {
 
   private boolean jj_3_8() {
     if (jj_scan_token(TYPES)) return true;
-    if (jj_3R_15()) return true;
-    return false;
-  }
-
-  private boolean jj_3_9() {
     if (jj_3R_16()) return true;
     return false;
   }
 
-  private boolean jj_3R_16() {
-    if (jj_scan_token(IDENTIFIER)) return true;
-    if (jj_3R_42()) return true;
+  private boolean jj_3_9() {
+    if (jj_3R_17()) return true;
     return false;
   }
 
-  private boolean jj_3R_15() {
+  private boolean jj_3R_17() {
+    if (jj_scan_token(IDENTIFIER)) return true;
+    if (jj_3R_46()) return true;
+    return false;
+  }
+
+  private boolean jj_3R_16() {
     Token xsp;
     if (jj_3_9()) return true;
     while (true) {
@@ -2054,22 +2133,23 @@ public class JASON implements JASONConstants {
 
   private boolean jj_3_1() {
     if (jj_scan_token(DEFINE)) return true;
-    if (jj_3R_13()) return true;
-    return false;
-  }
-
-  private boolean jj_3_2() {
     if (jj_3R_14()) return true;
     return false;
   }
 
-  private boolean jj_3R_14() {
-    if (jj_scan_token(IDENTIFIER)) return true;
-    if (jj_scan_token(OP_EQUALS)) return true;
+  private boolean jj_3_2() {
+    if (jj_3R_15()) return true;
     return false;
   }
 
-  private boolean jj_3R_13() {
+  private boolean jj_3R_15() {
+    if (jj_scan_token(IDENTIFIER)) return true;
+    if (jj_scan_token(OP_EQUALS)) return true;
+    if (jj_3R_45()) return true;
+    return false;
+  }
+
+  private boolean jj_3R_14() {
     Token xsp;
     if (jj_3_2()) return true;
     while (true) {
@@ -2081,6 +2161,16 @@ public class JASON implements JASONConstants {
 
   private boolean jj_3_3() {
     if (jj_scan_token(OP_SUB)) return true;
+    return false;
+  }
+
+  private boolean jj_3R_45() {
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3_6()) {
+    jj_scanpos = xsp;
+    if (jj_3_7()) return true;
+    }
     return false;
   }
 
@@ -2096,36 +2186,39 @@ public class JASON implements JASONConstants {
     return false;
   }
 
-  private boolean jj_3_32() {
+  private boolean jj_3_33() {
     if (jj_scan_token(WHILE)) return true;
-    if (jj_3R_27()) return true;
+    if (jj_3R_29()) return true;
+    if (jj_scan_token(DO)) return true;
     return false;
   }
 
-  private boolean jj_3_54() {
-    if (jj_3R_41()) return true;
+  private boolean jj_3_55() {
+    if (jj_3R_44()) return true;
     return false;
   }
 
-  private boolean jj_3_66() {
+  private boolean jj_3_67() {
     if (jj_scan_token(OP_GREATER)) return true;
     return false;
   }
 
-  private boolean jj_3_65() {
+  private boolean jj_3_66() {
     if (jj_scan_token(OP_LESS)) return true;
     return false;
   }
 
-  private boolean jj_3_53() {
+  private boolean jj_3_54() {
     if (jj_scan_token(PARETHESIS_OPEN)) return true;
-    if (jj_3R_27()) return true;
+    if (jj_3R_29()) return true;
+    if (jj_scan_token(PARETHESIS_CLOSE)) return true;
     return false;
   }
 
-  private boolean jj_3_31() {
+  private boolean jj_3_32() {
     if (jj_scan_token(IF)) return true;
-    if (jj_3R_27()) return true;
+    if (jj_3R_29()) return true;
+    if (jj_scan_token(THEN)) return true;
     return false;
   }
 
@@ -2158,7 +2251,7 @@ public class JASON implements JASONConstants {
    private static void jj_la1_init_2() {
       jj_la1_2 = new int[] {};
    }
-  final private JJCalls[] jj_2_rtns = new JJCalls[71];
+  final private JJCalls[] jj_2_rtns = new JJCalls[72];
   private boolean jj_rescan = false;
   private int jj_gc = 0;
 
@@ -2389,7 +2482,7 @@ public class JASON implements JASONConstants {
 
   private void jj_rescan_token() {
     jj_rescan = true;
-    for (int i = 0; i < 71; i++) {
+    for (int i = 0; i < 72; i++) {
     try {
       JJCalls p = jj_2_rtns[i];
       do {
@@ -2467,6 +2560,7 @@ public class JASON implements JASONConstants {
             case 68: jj_3_69(); break;
             case 69: jj_3_70(); break;
             case 70: jj_3_71(); break;
+            case 71: jj_3_72(); break;
           }
         }
         p = p.next;

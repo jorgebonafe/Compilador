@@ -4,7 +4,7 @@
 options {
   static = false;
   ERROR_REPORTING = true;
-  LOOKAHEAD = 2;
+  LOOKAHEAD = 3;
 }
 
 PARSER_BEGIN(JASON)
@@ -38,6 +38,7 @@ public class JASON {
 			errorMessage += e.getMessage() + "\u005cn";
 			ReInit(System.in);
 		} catch (Error e) {
+			errorCode = 4;
 			errorMessage += e.getMessage() + "\u005cn";
 		}
 
@@ -444,7 +445,7 @@ void TypeDeclSec(): {} { (<TYPES> TypeDecls())? }
 void TypeDecls(): {} { (TypeDecl())+ }
 void TypeDecl(): {} { <IDENTIFIER> TypeSpecification() }
 void TypeSpecification(): {} { ( ArraySpecification() | RecordSpecification() ) }
-void ArraySpecification(): {} { <ARRAY> DataType() <BRACKET_OPEN> (<INTEGER_CONST> | <REAL_CONST>) <BRACKET_OPEN> <SEMICOLON> }
+void ArraySpecification(): {} { <ARRAY> DataType() <BRACKET_OPEN> (<INTEGER_CONST> | <REAL_CONST>) <BRACKET_CLOSE> <SEMICOLON> }
 void RecordSpecification(): {} { <RECORD> VarDecls() <END> <SEMICOLON> }
 void VarDeclSec(): {} { (<VARIABLES> VarDecls())? }
 void VarDecls(): {} { (VarDecl())+ }
@@ -457,7 +458,7 @@ void ProcDecl(): {} { ProcHeader() SubProgramDeclSec() Block() <SEMICOLON> }
 void ProcHeader(): {} { <PROCEDURE> <IDENTIFIER> <SEMICOLON> }
 void SubProgramDeclSec(): {} { ParamDeclSec() DeclSec() }
 void ParamDeclSec(): {} { (<PARAMETERS> ParamDecls())? }
-void ParamDecls(): {} { (ParamDecl()) }
+void ParamDecls(): {} { (ParamDecl())+ }
 void ParamDecl(): {} { (<VAR>)? DataType() <IDENTIFIER> <SEMICOLON> }
 void FunctionDecl(): {} { FunctionHeader() SubProgramDeclSec() FunctionBlock() <SEMICOLON> }
 void FunctionHeader(): {} { <FUNCTION> <IDENTIFIER> <RETURNS> DataType() <SEMICOLON> }
@@ -481,9 +482,9 @@ void Term(): {} { Unary() ( MultOp() Unary() )* }
 void Unary(): {} { ( ( <OP_ADD> | <OP_SUB> ) )? Factor() }
 void Factor(): {} { ( Id() | (<INTEGER_CONST> | <REAL_CONST>) | <STRING_CONST> | <NOT> Factor() | <PARETHESIS_OPEN> Condition() <PARETHESIS_CLOSE> | Bool() ) }
 void Bool(): {} { ( <TRUE> | <FALSE> ) }
-void Id(): {} { <IDENTIFIER> ( ArgList() | ( <BRACKET_OPEN> Expression() <BRACKET_OPEN> )? VariableEx() )  }
-void Variable(): {} { <IDENTIFIER> ( <BRACKET_OPEN> Expression() <BRACKET_OPEN> )? VariableEx() }
-void VariableEx(): {} { (<DOT> <IDENTIFIER> ( <BRACKET_OPEN> Expression() <BRACKET_OPEN> )? )* }
+void Id(): {} { <IDENTIFIER> ( ArgList() | ( <BRACKET_OPEN> Expression() <BRACKET_CLOSE> )? VariableEx() )  }
+void Variable(): {} { <IDENTIFIER> ( <BRACKET_OPEN> Expression() <BRACKET_CLOSE> )? VariableEx() }
+void VariableEx(): {} { (<DOT> <IDENTIFIER> ( <BRACKET_OPEN> Expression() <BRACKET_CLOSE> )? )* }
 void RelOp(): {} { ( <OP_EQUALS> | <OP_DIFFERENT> | <OP_GREATER_OR_EQUAL> | <OP_LESS_OR_EQUAL> | <OP_LESS> | <OP_GREATER> ) }
 void AddOp(): {} { ( <OP_ADD> | <OP_SUB> ) }
 void MultOp(): {} { ( <OP_MULT> | <OP_DIV> | <OP_MOD> ) }
