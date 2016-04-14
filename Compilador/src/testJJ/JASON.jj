@@ -428,6 +428,7 @@ TOKEN [IGNORE_CASE]:
   < STRING_CONST : "\"" (~["\""])*  "\"" > 
 }
 
+
 void Program(): {} { Header() DeclSec() Block() <DOT> }
 void Header(): {} { <PROGRAM> <IDENTIFIER> <SEMICOLON> }
 void Block(): {} { <BEGIN> Statements() <END> }

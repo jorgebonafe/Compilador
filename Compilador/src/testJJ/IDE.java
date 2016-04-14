@@ -39,26 +39,26 @@ public class IDE {
 	private JSplitPane splitPane;
 
 	public static void main(String[] args) throws Exception {
-//		if (args.length <= 0) {
-//			SwingUtilities.invokeLater(new Runnable() {
-//				public void run() {
-//					new IDE();
-//				}
-//			});
-//		}
-//		else {
-//			File f = new File(args[0]);
-//			System.out.println(f);
-//
-//			JASON parser = new JASON(new FileInputStream(f));
-//			String result = parser.testParser(System.in);
-//			if (parser.getErrorCode() > 0) {
-//				System.out.println(parser.getErrorMessage());
-//			}
-//			else {
-//				System.out.println(result);
-//			}
-//		}
+		if (args.length <= 0) {
+			SwingUtilities.invokeLater(new Runnable() {
+				public void run() {
+					new IDE();
+				}
+			});
+		}
+		else {
+			File f = new File(args[0]);
+			System.out.println(f);
+
+			JASON parser = new JASON(new FileInputStream(f));
+			String result = parser.testParser(System.in);
+			if (parser.getErrorCode() > 0) {
+				System.out.println(parser.getErrorMessage());
+			}
+			else {
+				System.out.println(result);
+			}
+		}
 		SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
 				new IDE();
