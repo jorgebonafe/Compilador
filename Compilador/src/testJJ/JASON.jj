@@ -4,7 +4,7 @@
 options {
   static = false;
   ERROR_REPORTING = true;
-  LOOKAHEAD = 3;
+  DEBUG_PARSER = true;
 }
 
 PARSER_BEGIN(JASON)
@@ -36,7 +36,7 @@ public class JASON {
 		} catch (Exception e) {
 			errorCode = 4;
 			errorMessage += e.getMessage() + "\u005cn";
-			ReInit(System.in);
+			ReInit(is);
 		} catch (Error e) {
 			errorCode = 4;
 			errorMessage += e.getMessage() + "\u005cn";
@@ -436,42 +436,39 @@ void Block(): {} { <BEGIN> Statements() <END> }
 
 //Declarações
 
-void DeclSec(): {} { DefineDeclSec() TypeDeclSec() VarDeclSec() SubProgramDecls() }
-void DefineDeclSec(): {} { (<DEFINE> DefineDecls())? }
-void DefineDecls(): {} { (DefineDecl())+ }
-void DefineDecl(): {} { <IDENTIFIER> <OP_EQUALS> Values() <SEMICOLON> }
-void Values(): {} { ( <OP_SUB> )? (<INTEGER_CONST> | <REAL_CONST>) | <STRING_CONST>  }
-void TypeDeclSec(): {} { (<TYPES> TypeDecls())? }
-void TypeDecls(): {} { (TypeDecl())+ }
-void TypeDecl(): {} { <IDENTIFIER> TypeSpecification() }
-void TypeSpecification(): {} { ( ArraySpecification() | RecordSpecification() ) }
-void ArraySpecification(): {} { <ARRAY> DataType() <BRACKET_OPEN> (<INTEGER_CONST> | <REAL_CONST>) <BRACKET_CLOSE> <SEMICOLON> }
-void RecordSpecification(): {} { <RECORD> VarDecls() <END> <SEMICOLON> }
-void VarDeclSec(): {} { (<VARIABLES> VarDecls())? }
-void VarDecls(): {} { (VarDecl())+ }
-void VarDecl(): {} { DataType() IdList() <SEMICOLON> }
+void DeclSec(): {} { (DefineDeclSec())? (TypeDeclSec())? (VarDeclSec())? (SubProgramDecls())? }
+void DefineDeclSec(): {} { <DEFINE> ( <IDENTIFIER> <OP_EQUALS> Values() <SEMICOLON> )+ }
+void Values(): {} { ( <OP_SUB> )? (<INTEGER_CONST> | <REAL_CONST>) | <STRING_CONST> }
+void TypeDeclSec(): {} { <TYPES> ( <IDENTIFIER> ( ArraySpecification() | RecordSpecification() ) <SEMICOLON> )+ }
+void ArraySpecification(): {} { <ARRAY> DataType() <BRACKET_OPEN> (<INTEGER_CONST> | <REAL_CONST>) <BRACKET_CLOSE> }
+void RecordSpecification(): {} { <RECORD> VarDecls() <END> }
+void VarDeclSec(): {} { <VARIABLES> VarDecls() }
+void VarDecls(): {} { ( DataType() IdList() <SEMICOLON> )+ }
+
+
 void DataType(): {} { ( <REAL> | <INTEGER> | <IDENTIFIER> | <STRING> | <BOOLEAN> ) }
 void IdList(): {} { <IDENTIFIER> ( <COMMA> <IDENTIFIER> )* }
-void SubProgramDecls(): {} { (SubProgramDecl())* }
-void SubProgramDecl(): {} { ( ProcDecl() | FunctionDecl() ) }
+
+void SubProgramDecls(): {} { ( ProcDecl() | FunctionDecl() )+ }
+
 void ProcDecl(): {} { ProcHeader() SubProgramDeclSec() Block() <SEMICOLON> }
 void ProcHeader(): {} { <PROCEDURE> <IDENTIFIER> <SEMICOLON> }
-void SubProgramDeclSec(): {} { ParamDeclSec() DeclSec() }
-void ParamDeclSec(): {} { (<PARAMETERS> ParamDecls())? }
-void ParamDecls(): {} { (ParamDecl())+ }
-void ParamDecl(): {} { (<VAR>)? DataType() <IDENTIFIER> <SEMICOLON> }
+
+void SubProgramDeclSec(): {} { (ParamDeclSec())? DeclSec() }
+void ParamDeclSec(): {} { <PARAMETERS> ( (<VAR>)? DataType() <IDENTIFIER> <SEMICOLON> )+ } 
+
 void FunctionDecl(): {} { FunctionHeader() SubProgramDeclSec() FunctionBlock() <SEMICOLON> }
 void FunctionHeader(): {} { <FUNCTION> <IDENTIFIER> <RETURNS> DataType() <SEMICOLON> }
-void FunctionBlock(): {} { <BEGIN> Statements() ReturnStatement() <END> }
+void FunctionBlock(): {} { <BEGIN> ( Statement() <SEMICOLON> )+  <RETURN> <PARETHESIS_OPEN> Condition() <PARETHESIS_CLOSE> <END> }
 
 //Comandos
 
 void Statements(): {} { Statement() ( <SEMICOLON> Statement() )* }
-void Statement(): {} { ( <READ> Variable() | <SET> Variable() <OP_EQUALS> Expression() | <WRITE> Variable() | <IF> Condition() <THEN> Statements() ElseClause() | <WHILE> Condition() <DO> Statements() <ENDWHILE> | <UNTIL> Condition() <DO> Statements() <ENDUNTIL> | <CALL> <IDENTIFIER> ArgList() )? }
+void Statement(): {} { <READ> Variable() | <SET> Variable() <OP_EQUALS> Expression() | <WRITE> Variable() | <IF> Condition() <THEN> Statements() ElseClause() | <WHILE> Condition() <DO> Statements() <ENDWHILE> | <UNTIL> Condition() <DO> Statements() <ENDUNTIL> | <CALL> <IDENTIFIER> ArgList() }
 void ElseClause(): {} { ( <ELSE> Statements() )? <ENDIF> }
-void ReturnStatement(): {} { <SEMICOLON> <RETURN> <PARETHESIS_OPEN> Condition() <PARETHESIS_CLOSE> }
 void ArgList(): {} { ( <PARETHESIS_OPEN> Arguments() <PARETHESIS_CLOSE> )? }
-void Arguments(): {} { Argument() (<COMMA> Argument() )* }
+void Arguments(): {} { Condition() (<COMMA> Condition() )* }
+
 
 //Expressões
 void Condition(): {} { CompoundCondition() ( <OR> CompoundCondition() )* }
@@ -480,11 +477,11 @@ void SimpleCondition(): {} { Expression() (RelOp() Expression())? }
 void Expression(): {} { Term() ( AddOp() Term() )* }
 void Term(): {} { Unary() ( MultOp() Unary() )* }
 void Unary(): {} { ( ( <OP_ADD> | <OP_SUB> ) )? Factor() }
-void Factor(): {} { ( Id() | (<INTEGER_CONST> | <REAL_CONST>) | <STRING_CONST> | <NOT> Factor() | <PARETHESIS_OPEN> Condition() <PARETHESIS_CLOSE> | Bool() ) }
+
+void Factor(): {} { Bool() | <IDENTIFIER> ( <PARETHESIS_OPEN> Arguments() <PARETHESIS_CLOSE> )? VariableAux() | (<INTEGER_CONST> | <REAL_CONST>) | <STRING_CONST> | <NOT> Factor() | <PARETHESIS_OPEN> Condition() <PARETHESIS_CLOSE> }
 void Bool(): {} { ( <TRUE> | <FALSE> ) }
-void Id(): {} { <IDENTIFIER> ( ArgList() | ( <BRACKET_OPEN> Expression() <BRACKET_CLOSE> )? VariableEx() )  }
-void Variable(): {} { <IDENTIFIER> ( <BRACKET_OPEN> Expression() <BRACKET_CLOSE> )? VariableEx() }
-void VariableEx(): {} { (<DOT> <IDENTIFIER> ( <BRACKET_OPEN> Expression() <BRACKET_CLOSE> )? )* }
+void Variable(): {} { <IDENTIFIER> VariableAux() }
+void VariableAux(): {} { ( <DOT> <IDENTIFIER> | <BRACKET_OPEN>  Expression() <BRACKET_CLOSE> )* }
 void RelOp(): {} { ( <OP_EQUALS> | <OP_DIFFERENT> | <OP_GREATER_OR_EQUAL> | <OP_LESS_OR_EQUAL> | <OP_LESS> | <OP_GREATER> ) }
 void AddOp(): {} { ( <OP_ADD> | <OP_SUB> ) }
 void MultOp(): {} { ( <OP_MULT> | <OP_DIV> | <OP_MOD> ) }

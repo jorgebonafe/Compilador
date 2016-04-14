@@ -166,17 +166,23 @@ public class ParseException extends Exception {
     StringBuffer expected = new StringBuffer();
     expected.append("\"");
     int maxSize = 0;
+    boolean addedComma;
     for (int i = 0; i < expectedTokenSequences.length; i++) {
+    	addedComma = false;
       if (maxSize < expectedTokenSequences[i].length) {
         maxSize = expectedTokenSequences[i].length;
       }
       for (int j = 0; j < expectedTokenSequences[i].length; j++) {
         expected.append(tokenCustomNames[expectedTokenSequences[i][j]]);
-        if (j<expectedTokenSequences[i].length-1)
-        	expected.append(' ');
+        if (j<expectedTokenSequences[i].length-1) {
+        	expected.append(", ");
+        	addedComma = true;
+        }
+        if (i<expectedTokenSequences.length-1 && !addedComma)
+        	expected.append(", ");
       }
-      expected.append("\"");
     }
+    expected.append("\"");
     String retval = "Encontrou ";
     Token tok = currentToken.next;
     for (int i = 0; i < maxSize; i++) {
@@ -194,7 +200,7 @@ public class ParseException extends Exception {
     if (expectedTokenSequences.length == 1) {
       retval += "Estava esperando:" + "    ";
     } else {
-      retval += "Estava esperando um de:" + "    ";
+      retval += "Estava esperando um de: ";
     }
     retval += expected.toString();
     return retval;
