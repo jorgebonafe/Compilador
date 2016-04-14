@@ -12,6 +12,80 @@ package testJJ;
  * mechanisms so long as you retain the public fields.
  */
 public class ParseException extends Exception {
+	 private static String[] tokenCustomNames = {
+		    "Fim do Arquivo",
+		    " ",
+		    "\\r",
+		    "\\r\\n",
+		    "\\t",
+		    "\\n",
+		    "<COMMENT_LINE>",
+		    "{",
+		    "<COMMENT_BLOCK>",
+		    "<COMMENT_CORE>",
+		    "ARRAY",
+		    "BEGIN",
+		    "CALL",
+		    "DO",
+		    "ELSE",
+		    "END",
+		    "ENDIF",
+		    "ENDUNTIL",
+		    "ENDWHILE",
+		    "FUNCTION",
+		    "IF",
+		    "INTEGER",
+		    "PARAMETERS",
+		    "PROCEDURE",
+		    "RETURNS",
+		    "PROGRAM",
+		    "READ",
+		    "REAL",
+		    "RECORD",
+		    "RETURN",
+		    "SET",
+		    "STRING",
+		    "THEN",
+		    "TYPES",
+		    "UNTIL",
+		    "VAR",
+		    "VARIABLES",
+		    "WHILE",
+		    "WRITE",
+		    "BOOLEAN",
+		    "TRUE",
+		    "FALSE",
+		    "DEFINE",
+		    "+",
+		    "-",
+		    "*",
+		    "/",
+		    "%",
+		    "=",
+		    "<",
+		    ">",
+		    "<=",
+		    ">=",
+		    "!",
+		    "[",
+		    "]",
+		    "(",
+		    ")",
+		    ",",
+		    ".",
+		    ";",
+		    "&",
+		    "\\\\",
+		    "~",
+		    "Constante inteira",
+		    "<Constante Real",
+		    "Dígito",
+		    "Identificador",
+		    "<IDENTIFIER_ERR>",
+		    "\\",
+		    "<STRING_CORE>",
+		    "<STRING_CONST>",
+		  };
 
   /**
    * The version identifier for this Serializable class.
@@ -90,39 +164,37 @@ public class ParseException extends Exception {
                            String[] tokenImage) {
     String eol = System.getProperty("line.separator", "\n");
     StringBuffer expected = new StringBuffer();
+    expected.append("\"");
     int maxSize = 0;
     for (int i = 0; i < expectedTokenSequences.length; i++) {
       if (maxSize < expectedTokenSequences[i].length) {
         maxSize = expectedTokenSequences[i].length;
       }
       for (int j = 0; j < expectedTokenSequences[i].length; j++) {
-        expected.append(tokenImage[expectedTokenSequences[i][j]]).append(' ');
+        expected.append(tokenCustomNames[expectedTokenSequences[i][j]]);
+        if (j<expectedTokenSequences[i].length-1)
+        	expected.append(' ');
       }
-      if (expectedTokenSequences[i][expectedTokenSequences[i].length - 1] != 0) {
-        expected.append("...");
-      }
-      expected.append(eol).append("    ");
+      expected.append("\"");
     }
-    String retval = "Encountered \"";
+    String retval = "Encontrou ";
     Token tok = currentToken.next;
     for (int i = 0; i < maxSize; i++) {
       if (i != 0) retval += " ";
       if (tok.kind == 0) {
-        retval += tokenImage[0];
+        retval += "\"" + tokenCustomNames[0] + "\"";
         break;
       }
-      retval += " " + tokenImage[tok.kind];
-      retval += " \"";
+      retval += "\"" + tokenCustomNames[tok.kind] + "\" ";
       retval += add_escapes(tok.image);
-      retval += " \"";
       tok = tok.next;
     }
-    retval += "\" at line " + currentToken.next.beginLine + ", column " + currentToken.next.beginColumn;
+    retval += " na linha " + currentToken.next.beginLine + ", coluna " + currentToken.next.beginColumn;
     retval += "." + eol;
     if (expectedTokenSequences.length == 1) {
-      retval += "Was expecting:" + eol + "    ";
+      retval += "Estava esperando:" + "    ";
     } else {
-      retval += "Was expecting one of:" + eol + "    ";
+      retval += "Estava esperando um de:" + "    ";
     }
     retval += expected.toString();
     return retval;

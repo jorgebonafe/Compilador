@@ -95,17 +95,17 @@ public interface JASONConstants {
   /** RegularExpression Id. */
   int OP_MOD = 47;
   /** RegularExpression Id. */
-  int OP_EQ = 48;
+  int OP_EQUALS = 48;
   /** RegularExpression Id. */
   int OP_LESS = 49;
   /** RegularExpression Id. */
-  int OP_GREAT = 50;
+  int OP_GREATER = 50;
   /** RegularExpression Id. */
-  int OP_LESS_EQ = 51;
+  int OP_LESS_OR_EQUAL = 51;
   /** RegularExpression Id. */
-  int OP_GREAT_EQ = 52;
+  int OP_GREATER_OR_EQUAL = 52;
   /** RegularExpression Id. */
-  int OP_NOT_EQ = 53;
+  int OP_DIFFERENT = 53;
   /** RegularExpression Id. */
   int BRACKET_OPEN = 54;
   /** RegularExpression Id. */
