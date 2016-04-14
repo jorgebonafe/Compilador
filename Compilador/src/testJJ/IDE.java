@@ -59,11 +59,6 @@ public class IDE {
 				System.out.println(result);
 			}
 		}
-		SwingUtilities.invokeLater(new Runnable() {
-			public void run() {
-				new IDE();
-			}
-		});
 	}
 
 	public IDE() {
