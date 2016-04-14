@@ -464,7 +464,7 @@ void FunctionBlock(): {} { <BEGIN> ( Statement() <SEMICOLON> )+  <RETURN> <PARET
 //Comandos
 
 void Statements(): {} { Statement() ( <SEMICOLON> Statement() )* }
-void Statement(): {} { <READ> Variable() | <SET> Variable() <OP_EQUALS> Expression() | <WRITE> Variable() | <IF> Condition() <THEN> Statements() ElseClause() | <WHILE> Condition() <DO> Statements() <ENDWHILE> | <UNTIL> Condition() <DO> Statements() <ENDUNTIL> | <CALL> <IDENTIFIER> ArgList() }
+void Statement(): {} { ( <READ> Variable() | <SET> Variable() <OP_EQUALS> Expression() | <WRITE> Variable() | <IF> Condition() <THEN> Statements() ElseClause() | <WHILE> Condition() <DO> Statements() <ENDWHILE> | <UNTIL> Condition() <DO> Statements() <ENDUNTIL> | <CALL> <IDENTIFIER> ArgList() )? }
 void ElseClause(): {} { ( <ELSE> Statements() )? <ENDIF> }
 void ArgList(): {} { ( <PARETHESIS_OPEN> Arguments() <PARETHESIS_CLOSE> )? }
 void Arguments(): {} { Condition() (<COMMA> Condition() )* }
