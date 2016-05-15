@@ -4,17 +4,22 @@
 options {
   static = false;
   ERROR_REPORTING = true;
-  DEBUG_PARSER = true;
+//  DEBUG_PARSER = true;
 }
 
 PARSER_BEGIN(JASON)
 package testJJ;
 
 import java.io.InputStream;
+import java.util.ArrayList;
 
 public class JASON {
 	int errorCode = 0;
+	String result = "";
 	String errorMessage = "";
+	int currentLevel = 0;
+	SymbolTableManager STManager = new SymbolTableManager();
+	ArrayList<String> errorParams;
 
 	public int getErrorCode()
 	{
@@ -27,18 +32,34 @@ public class JASON {
 	}
 	
 	public String testParser(InputStream is)	{
-		String result = "";
+		result = "";
 		errorCode = 0;
 		
 		try {
 			this.Program();
 			result += "OK.\u005cn";
-		} catch (Exception e) {
-			errorCode = 4;
+		} catch (ParseException e) {
+			switch (errorCode)
+			{
+				case ErrorConstants.ERR_DUPLICATE_IDENTIFIER: 
+					errorMessage = "Identificador duplicado ("+
+					errorParams.get(0)+
+					") na linha " + e.currentToken.beginLine + ", coluna "
+					+ e.currentToken.beginColumn;
+					break;
+				default:
+					errorCode = -1;
+					errorMessage += e.getMessage() + "\u005cn";
+			}
+
+			ReInit(is);
+		}
+		catch (Exception e) {
+			errorCode = -1;
 			errorMessage += e.getMessage() + "\u005cn";
 			ReInit(is);
 		} catch (Error e) {
-			errorCode = 4;
+			errorCode = -1;
 			errorMessage += e.getMessage() + "\u005cn";
 		}
 
@@ -443,22 +464,175 @@ void TypeDeclSec(): {} { <TYPES> ( <IDENTIFIER> ( ArraySpecification() | RecordS
 void ArraySpecification(): {} { <ARRAY> DataType() <BRACKET_OPEN> (<INTEGER_CONST> | <REAL_CONST>) <BRACKET_CLOSE> }
 void RecordSpecification(): {} { <RECORD> VarDecls() <END> }
 void VarDeclSec(): {} { <VARIABLES> VarDecls() }
-void VarDecls(): {} { ( DataType() IdList() <SEMICOLON> )+ }
+void VarDecls(): {int dt;} {
+	( dt = DataType() IdList(dt) <SEMICOLON> )+
+}
 
+int DataType(): {Token t;} {
+	( t = <REAL> | t = <INTEGER> |
+	  t = <IDENTIFIER> | t = <STRING> | t = <BOOLEAN> )
+	{
+		return t.kind;	}
+}
 
-void DataType(): {} { ( <REAL> | <INTEGER> | <IDENTIFIER> | <STRING> | <BOOLEAN> ) }
-void IdList(): {} { <IDENTIFIER> ( <COMMA> <IDENTIFIER> )* }
+void IdList(int dt): {ArrayList<Identifier> idList; Token t;} {
+	{
+		idList = new ArrayList<Identifier>();
+	}
+	t = <IDENTIFIER>
+	{
+		Identifier id = new Identifier();
+		id.setID(t.image.toUpperCase());
+		id.setLevel(currentLevel);
+		id.setType(dt);
+		id.setCategory(SymbolTableManager.CATEGORY_VAR);
+		idList.add(id);
+	}
+	( <COMMA> t = <IDENTIFIER>
+	{
+		id = new Identifier();
+		id.setID(t.image.toUpperCase());
+		id.setLevel(currentLevel);
+		id.setType(dt);
+		id.setCategory(SymbolTableManager.CATEGORY_VAR);
+		idList.add(id);	}
+	)*
+	{
+		for (Identifier identifier : idList) {
+			if (STManager.addSymbol(identifier))			{				result += "ID:"+identifier.getID()+"\n";
+				result += "Tipo:"+identifier.getTypeName()+"\n";
+				result += "Nível:"+currentLevel+"\n";
+				result += "Categoria:"+identifier.getCategoryName()+"\n";
+				result += "----------------------"+"\n";
+			}
+			else			{
+				errorCode = ErrorConstants.ERR_DUPLICATE_IDENTIFIER;
+				errorParams = new ArrayList<String>();
+				errorParams.add(id.getID());
+				throw generateParseException();
+			}
+		}	}
+}
 
 void SubProgramDecls(): {} { ( ProcDecl() | FunctionDecl() )+ }
 
-void ProcDecl(): {} { ProcHeader() SubProgramDeclSec() Block() <SEMICOLON> }
-void ProcHeader(): {} { <PROCEDURE> <IDENTIFIER> <SEMICOLON> }
+void ProcDecl(): {} {
+	ProcHeader()
+	{
+		currentLevel++;
+	}
+	SubProgramDeclSec() Block()
+	{
+		STManager.removeLevel(currentLevel);
+		currentLevel--;
+	}
+	<SEMICOLON>
+}
+void ProcHeader(): {Token t;} {
+	<PROCEDURE> t = <IDENTIFIER>
+	{
+		Identifier id = new Identifier();
+		id.setID(t.image.toUpperCase());
+		id.setLevel(currentLevel);
+		id.setCategory(SymbolTableManager.CATEGORY_PROCEDURE);
+		if (STManager.addSymbol(id))
+		{
+			result += "ID:"+id.getID()+"\n";
+			result += "Nível:"+id.getLevel()+"\n";
+			result += "Categoria:"+id.getCategoryName()+"\n";
+			result += "----------------------"+"\n";
+		}
+		else
+		{
+			errorCode = ErrorConstants.ERR_DUPLICATE_IDENTIFIER;
+			errorParams = new ArrayList<String>();
+			errorParams.add(id.getID());
+			throw generateParseException();
+		}	}
+	<SEMICOLON>
+}
 
-void SubProgramDeclSec(): {} { (ParamDeclSec())? DeclSec() }
-void ParamDeclSec(): {} { <PARAMETERS> ( (<VAR>)? DataType() <IDENTIFIER> <SEMICOLON> )+ } 
+void SubProgramDeclSec(): {} {(ParamDeclSec())? DeclSec() }
+void ParamDeclSec(): {int dt;Token t;Token tTransf = null;} {
+	{
+		ArrayList<Identifier> idList = new ArrayList<Identifier>();
+		Identifier id;
+	}
+	<PARAMETERS> ( (tTransf = <VAR>)?
+	dt = DataType()
+	t = <IDENTIFIER>
+	{
+		id = new Identifier();		id.setID(t.image.toUpperCase());
+		id.setLevel(currentLevel);
+		id.setType(dt);
+		id.setCategory(SymbolTableManager.CATEGORY_PARAM);
+		if (tTransf==null) {
+			id.setTransferType(SymbolTableManager.TRANSFER_VALUE);		}
+		else {			id.setTransferType(SymbolTableManager.TRANSFER_REF);
+		}
+		idList.add(id);
+	}
+	<SEMICOLON> )+
+	{
+		for (Identifier identifier : idList) {
+			if (STManager.addSymbol(identifier))
+			{
+				result += "ID:"+identifier.getID()+"\n";
+				result += "Tipo:"+identifier.getTypeName()+"\n";
+				result += "Nível:"+currentLevel+"\n";
+				result += "Categoria:"+identifier.getCategoryName()+"\n";
+				result += "Transferência:"+identifier.getTransferTypeName()+"\n";
+				result += "----------------------"+"\n";
+			}
+			else
+			{
+				errorCode = ErrorConstants.ERR_DUPLICATE_IDENTIFIER;
+				errorParams = new ArrayList<String>();
+				errorParams.add(id.getID());
+				throw generateParseException();
+			}
+		}
+	}
+} 
 
-void FunctionDecl(): {} { FunctionHeader() SubProgramDeclSec() FunctionBlock() <SEMICOLON> }
-void FunctionHeader(): {} { <FUNCTION> <IDENTIFIER> <RETURNS> DataType() <SEMICOLON> }
+void FunctionDecl(): {} {
+	FunctionHeader()
+	{
+		currentLevel++;
+	}
+	SubProgramDeclSec() FunctionBlock()
+	{
+		STManager.removeLevel(currentLevel);
+		currentLevel--;
+	}
+	<SEMICOLON>
+}
+void FunctionHeader(): {Token t;int dt;} {
+	<FUNCTION> t = <IDENTIFIER>
+	<RETURNS> dt = DataType()
+	{		Identifier id = new Identifier();
+		id.setID(t.image.toUpperCase());
+		id.setLevel(currentLevel);
+		id.setType(dt);
+		id.setCategory(SymbolTableManager.CATEGORY_FUNCTION);
+		if (STManager.addSymbol(id))
+		{
+			result += "ID:"+id.getID()+"\n";
+			result += "Nível:"+id.getLevel()+"\n";
+			result += "Categoria:"+id.getCategoryName()+"\n";
+			result += "Retorno:"+id.getTypeName()+"\n";
+			result += "----------------------"+"\n";
+		}
+		else
+		{
+			errorCode = ErrorConstants.ERR_DUPLICATE_IDENTIFIER;
+			errorParams = new ArrayList<String>();
+			errorParams.add(id.getID());
+			throw generateParseException();
+		}
+	}
+	<SEMICOLON>
+}
 void FunctionBlock(): {} { <BEGIN> ( Statement() <SEMICOLON> )+  <RETURN> <PARETHESIS_OPEN> Condition() <PARETHESIS_CLOSE> <END> }
 
 //Comandos

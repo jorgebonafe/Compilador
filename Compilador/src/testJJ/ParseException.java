@@ -195,6 +195,7 @@ public class ParseException extends Exception {
       retval += add_escapes(tok.image);
       tok = tok.next;
     }
+    try {
     retval += " na linha " + currentToken.next.beginLine + ", coluna " + currentToken.next.beginColumn;
     retval += "." + eol;
     if (expectedTokenSequences.length == 1) {
@@ -203,6 +204,9 @@ public class ParseException extends Exception {
       retval += "Estava esperando um de: ";
     }
     retval += expected.toString();
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
     return retval;
   }
 
