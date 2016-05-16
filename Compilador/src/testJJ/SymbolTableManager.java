@@ -96,6 +96,18 @@ public class SymbolTableManager {
 		return true;
 	}
 	
+	public Identifier getIdentifier(String name) {
+		if (!symbolList.containsKey(name.toUpperCase()))
+			return null;
+		
+		ArrayList<Identifier> idList = symbolList.get(name.toUpperCase());
+		for (int i=idList.size()-1;i>=0;i--) {
+			if (idList.get(i) != null)
+				return idList.get(i);
+		}
+		return null;
+	}
+	
 	public void removeLevel(int level) {
 		ArrayList<Identifier> idList = symbolListByLevel.get(level);
 		for (Identifier identifier : idList) {

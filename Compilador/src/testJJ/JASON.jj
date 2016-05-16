@@ -69,6 +69,12 @@ public class JASON {
 					") na linha " + e.currentToken.beginLine + ", coluna "
 					+ e.currentToken.beginColumn;
 					break;
+				case ErrorConstants.ERR_IDENTIFIER_NOT_DECLARED: 
+					errorMessage = "Identificador não declarado ("+
+					errorParams.get(0)+
+					") na linha " + e.currentToken.beginLine + ", coluna "
+					+ e.currentToken.beginColumn;
+					break; 
 				default:
 					errorCode = -1;
 					errorMessage += e.getMessage() + "\u005cn";
@@ -499,9 +505,7 @@ void Block(): {} { <BEGIN> Statements() <END> }
 //Declarações
 
 void DeclSec(): {} { (DefineDeclSec())? (TypeDeclSec())? (VarDeclSec())? (SubProgramDecls())? }
-void DefineDeclSec(): {} {
-	<DEFINE> ( <IDENTIFIER> <OP_EQUALS> Values() <SEMICOLON> )+
-}
+void DefineDeclSec(): {} { <DEFINE> ( <IDENTIFIER> <OP_EQUALS> Values() <SEMICOLON> )+ }
 String Values(): {Token t1 = null; Token t2;} {
 	( ( t1 = <OP_SUB> )? ( t2 = <INTEGER_CONST> | t2 = <REAL_CONST>) |
 	t2 = <STRING_CONST> )
@@ -704,10 +708,39 @@ void Expression(): {} { Term() ( AddOp() Term() )* }
 void Term(): {} { Unary() ( MultOp() Unary() )* }
 void Unary(): {} { ( ( <OP_ADD> | <OP_SUB> ) )? Factor() }
 
-void Factor(): {} { Bool() | <IDENTIFIER> ( <PARETHESIS_OPEN> Arguments() <PARETHESIS_CLOSE> )? VariableAux() | (<INTEGER_CONST> | <REAL_CONST>) | <STRING_CONST> | <NOT> Factor() | <PARETHESIS_OPEN> Condition() <PARETHESIS_CLOSE> }
+void Factor(): {Token t;} {
+	Bool() |
+	t = <IDENTIFIER>
+	{
+		Identifier id = STManager.getIdentifier(t.image);
+		if (id==null)
+		{
+			errorCode = ErrorConstants.ERR_IDENTIFIER_NOT_DECLARED;
+			errorParams = new ArrayList<String>();
+			errorParams.add(t.image.toUpperCase());
+			throw generateParseException();
+		}	}
+	( <PARETHESIS_OPEN> Arguments() <PARETHESIS_CLOSE> )? VariableAux() | (<INTEGER_CONST> | <REAL_CONST>) | <STRING_CONST> | <NOT> Factor() | <PARETHESIS_OPEN> Condition() <PARETHESIS_CLOSE>
+	}
 void Bool(): {} { ( <TRUE> | <FALSE> ) }
-void Variable(): {} { <IDENTIFIER> VariableAux() }
-void VariableAux(): {} { ( <DOT> <IDENTIFIER> | <BRACKET_OPEN>  Expression() <BRACKET_CLOSE> )* }
+void Variable(): {Token t;} {
+	t = <IDENTIFIER>	{
+		Identifier id = STManager.getIdentifier(t.image);
+		if (id==null)
+		{
+			errorCode = ErrorConstants.ERR_IDENTIFIER_NOT_DECLARED;
+			errorParams = new ArrayList<String>();
+			errorParams.add(t.image.toUpperCase());
+			throw generateParseException();
+		}
+	}
+	VariableAux()
+}
+void VariableAux(): {Token t;} {
+	( <DOT> t = <IDENTIFIER>
+// TODO
+	| <BRACKET_OPEN>  Expression() <BRACKET_CLOSE> )*
+}
 void RelOp(): {} { ( <OP_EQUALS> | <OP_DIFFERENT> | <OP_GREATER_OR_EQUAL> | <OP_LESS_OR_EQUAL> | <OP_LESS> | <OP_GREATER> ) }
 void AddOp(): {} { ( <OP_ADD> | <OP_SUB> ) }
 void MultOp(): {} { ( <OP_MULT> | <OP_DIV> | <OP_MOD> ) }

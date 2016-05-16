@@ -57,6 +57,12 @@ public class JASON implements JASONConstants {
                                         ") na linha " + e.currentToken.beginLine + ", coluna "
                                         + e.currentToken.beginColumn;
                                         break;
+                                case ErrorConstants.ERR_IDENTIFIER_NOT_DECLARED:
+                                        errorMessage = "Identificador n\u00e3o declarado ("+
+                                        errorParams.get(0)+
+                                        ") na linha " + e.currentToken.beginLine + ", coluna "
+                                        + e.currentToken.beginColumn;
+                                        break;
                                 default:
                                         errorCode = -1;
                                         errorMessage += e.getMessage() + "\u005cn";
@@ -1107,13 +1113,22 @@ public class JASON implements JASONConstants {
   }
 
   final public void Factor() throws ParseException {
+                Token t;
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
     case TRUE:
     case FALSE:
       Bool();
       break;
     case IDENTIFIER:
-      jj_consume_token(IDENTIFIER);
+      t = jj_consume_token(IDENTIFIER);
+                Identifier id = STManager.getIdentifier(t.image);
+                if (id==null)
+                {
+                        errorCode = ErrorConstants.ERR_IDENTIFIER_NOT_DECLARED;
+                        errorParams = new ArrayList<String>();
+                        errorParams.add(t.image.toUpperCase());
+                        {if (true) throw generateParseException();}
+                }
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
       case PARETHESIS_OPEN:
         jj_consume_token(PARETHESIS_OPEN);
@@ -1176,11 +1191,21 @@ public class JASON implements JASONConstants {
   }
 
   final public void Variable() throws ParseException {
-    jj_consume_token(IDENTIFIER);
+                  Token t;
+    t = jj_consume_token(IDENTIFIER);
+                Identifier id = STManager.getIdentifier(t.image);
+                if (id==null)
+                {
+                        errorCode = ErrorConstants.ERR_IDENTIFIER_NOT_DECLARED;
+                        errorParams = new ArrayList<String>();
+                        errorParams.add(t.image.toUpperCase());
+                        {if (true) throw generateParseException();}
+                }
     VariableAux();
   }
 
   final public void VariableAux() throws ParseException {
+                     Token t;
     label_15:
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
@@ -1195,7 +1220,7 @@ public class JASON implements JASONConstants {
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
       case DOT:
         jj_consume_token(DOT);
-        jj_consume_token(IDENTIFIER);
+        t = jj_consume_token(IDENTIFIER);
         break;
       case BRACKET_OPEN:
         jj_consume_token(BRACKET_OPEN);
