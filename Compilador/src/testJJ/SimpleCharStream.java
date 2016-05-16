@@ -14,6 +14,8 @@ public class SimpleCharStream
   int bufsize;
   int available;
   int tokenBegin;
+  protected int totalCharsRead = 0;
+  protected int absoluteTokenBengin = 0;
 /** Position in buffer. */
   public int bufpos = -1;
   protected int bufline[];
@@ -129,12 +131,13 @@ public class SimpleCharStream
     }
   }
 
-/** Start. */
+  /** Start. */
   public char BeginToken() throws java.io.IOException
   {
     tokenBegin = -1;
     char c = readChar();
     tokenBegin = bufpos;
+    absoluteTokenBengin = totalCharsRead;
 
     return c;
   }
@@ -179,7 +182,7 @@ public class SimpleCharStream
     bufcolumn[bufpos] = column;
   }
 
-/** Read a character. */
+  /** Read a character. */
   public char readChar() throws java.io.IOException
   {
     if (inBuf > 0)
@@ -189,16 +192,27 @@ public class SimpleCharStream
       if (++bufpos == bufsize)
         bufpos = 0;
 
+      totalCharsRead++;
       return buffer[bufpos];
     }
 
     if (++bufpos >= maxNextCharInd)
       FillBuff();
 
+    totalCharsRead++;
     char c = buffer[bufpos];
 
     UpdateLineColumn(c);
     return c;
+  }
+
+/** Backup a number of characters. */
+  public void backup(int amount) {
+
+    inBuf += amount;
+    totalCharsRead -= amount;
+    if ((bufpos -= amount) < 0)
+      bufpos += bufsize;
   }
 
   @Deprecated
@@ -239,14 +253,6 @@ public class SimpleCharStream
   /** Get token beginning line number. */
   public int getBeginLine() {
     return bufline[tokenBegin];
-  }
-
-/** Backup a number of characters. */
-  public void backup(int amount) {
-
-    inBuf += amount;
-    if ((bufpos -= amount) < 0)
-      bufpos += bufsize;
   }
 
   /** Constructor. */
@@ -467,5 +473,9 @@ public class SimpleCharStream
     column = bufcolumn[j];
   }
 
+  public final int getAbsoluteTokenBengin() {
+    return absoluteTokenBengin;
+  }
+  
 }
 /* JavaCC - OriginalChecksum=ba27ce47d409e612a38d18f401d967cd (do not edit this line) */

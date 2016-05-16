@@ -2,10 +2,23 @@
 package testJJ;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 /** Token Manager. */
 public class JASONTokenManager implements JASONConstants
 {
+        public void CommonTokenAction(Token t)
+        {
+                t.absoluteBeginColumn = getCurrentTokenAbsolutePosition();
+                t.absoluteEndColumn = t.absoluteBeginColumn + t.image.length();
+        }
+
+        public int getCurrentTokenAbsolutePosition()
+        {
+                if (input_stream instanceof SimpleCharStream)
+                        return ((SimpleCharStream)input_stream).getAbsoluteTokenBengin();
+                return -1;
+        }
 
   /** Debug output. */
   public  java.io.PrintStream debugStream = System.out;
@@ -2962,6 +2975,7 @@ public Token getNextToken()
       jjmatchedKind = 0;
       matchedToken = jjFillToken();
       matchedToken.specialToken = specialToken;
+      CommonTokenAction(matchedToken);
       return matchedToken;
    }
    image = jjimage;
@@ -2999,6 +3013,7 @@ public Token getNextToken()
            TokenLexicalActions(matchedToken);
        if (jjnewLexState[jjmatchedKind] != -1)
          curLexState = jjnewLexState[jjmatchedKind];
+           CommonTokenAction(matchedToken);
            return matchedToken;
         }
         else

@@ -9,6 +9,7 @@ public class SymbolTableManager {
 	public static final int CATEGORY_FUNCTION = 2;
 	public static final int CATEGORY_VAR = 3;
 	public static final int CATEGORY_PARAM = 4;
+	public static final int CATEGORY_CONST = 5;
 	
 	public static final int TRANSFER_REF = 0;
 	public static final int TRANSFER_VALUE = 1;

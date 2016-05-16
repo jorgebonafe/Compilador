@@ -8,6 +8,7 @@ public class Identifier {
 	private int address;
 	private int nBytes;
 	private int value;
+	private String constValue;
 	private int transferType;
 	private int nParameters;
 	private int lower;
@@ -49,6 +50,8 @@ public class Identifier {
 			return "Variável";
 		case SymbolTableManager.CATEGORY_PARAM:
 			return "Parâmetro";
+		case SymbolTableManager.CATEGORY_CONST:
+			return "Constante";
 		}
 		return "";
 	}
@@ -139,5 +142,13 @@ public class Identifier {
 
 	public void setUpper(int upper) {
 		this.upper = upper;
+	}
+
+	public String getConstValue() {
+		return constValue;
+	}
+
+	public void setConstValue(String constValue) {
+		this.constValue = constValue;
 	}
 }

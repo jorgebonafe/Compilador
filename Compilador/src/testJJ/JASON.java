@@ -3,14 +3,17 @@ package testJJ;
 
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class JASON implements JASONConstants {
         int errorCode = 0;
         String result = "";
         String errorMessage = "";
-        int currentLevel = 0;
-        SymbolTableManager STManager = new SymbolTableManager();
+        int currentLevel;
+        SymbolTableManager STManager;
         ArrayList<String> errorParams;
+        HashMap<String,String> definitions;
+        int offset = 0;
 
         public int getErrorCode()
         {
@@ -22,9 +25,25 @@ public class JASON implements JASONConstants {
                 return errorMessage;
         }
 
+        public HashMap<String,String> preProcess(InputStream is, int[] charPos) {
+                result = "";
+                int currentLevel = 0;
+                STManager = new SymbolTableManager();
+                definitions = new HashMap<String,String>();
+                try {
+                        this.PreProcess();
+                        charPos[0] = offset;
+                }
+                catch (Exception e) {}
+                return definitions;
+        }
+
         public String testParser(InputStream is)        {
+                ReInit(is);
                 result = "";
                 errorCode = 0;
+                int currentLevel = 0;
+                STManager = new SymbolTableManager();
 
                 try {
                         this.Program();
@@ -323,6 +342,53 @@ public class JASON implements JASONConstants {
                 return result;
         }
 
+  final public void PreProcess() throws ParseException {
+    Header();
+    PreDeclSec();
+    SkipRest();
+  }
+
+  final public void PreDeclSec() throws ParseException {
+    switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
+    case DEFINE:
+      PreDefineDeclSec();
+      break;
+    default:
+      jj_la1[0] = jj_gen;
+      ;
+    }
+  }
+
+  final public void PreDefineDeclSec() throws ParseException {
+                          Token t; String v;
+    jj_consume_token(DEFINE);
+    label_1:
+    while (true) {
+      t = jj_consume_token(IDENTIFIER);
+      jj_consume_token(OP_EQUALS);
+      v = Values();
+                definitions.put(t.image,v);
+      jj_consume_token(SEMICOLON);
+      switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
+      case IDENTIFIER:
+        ;
+        break;
+      default:
+        jj_la1[1] = jj_gen;
+        break label_1;
+      }
+    }
+  }
+
+  final public void SkipRest() throws ParseException {
+                  Token t;
+                t = getToken(0);
+                offset = t.absoluteBeginColumn;
+                while (t.kind!=0) {
+                        t = getNextToken();
+                }
+  }
+
   final public void Program() throws ParseException {
     Header();
     DeclSec();
@@ -349,7 +415,7 @@ public class JASON implements JASONConstants {
       DefineDeclSec();
       break;
     default:
-      jj_la1[0] = jj_gen;
+      jj_la1[2] = jj_gen;
       ;
     }
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
@@ -357,7 +423,7 @@ public class JASON implements JASONConstants {
       TypeDeclSec();
       break;
     default:
-      jj_la1[1] = jj_gen;
+      jj_la1[3] = jj_gen;
       ;
     }
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
@@ -365,7 +431,7 @@ public class JASON implements JASONConstants {
       VarDeclSec();
       break;
     default:
-      jj_la1[2] = jj_gen;
+      jj_la1[4] = jj_gen;
       ;
     }
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
@@ -374,14 +440,14 @@ public class JASON implements JASONConstants {
       SubProgramDecls();
       break;
     default:
-      jj_la1[3] = jj_gen;
+      jj_la1[5] = jj_gen;
       ;
     }
   }
 
   final public void DefineDeclSec() throws ParseException {
     jj_consume_token(DEFINE);
-    label_1:
+    label_2:
     while (true) {
       jj_consume_token(IDENTIFIER);
       jj_consume_token(OP_EQUALS);
@@ -392,51 +458,58 @@ public class JASON implements JASONConstants {
         ;
         break;
       default:
-        jj_la1[4] = jj_gen;
-        break label_1;
+        jj_la1[6] = jj_gen;
+        break label_2;
       }
     }
   }
 
-  final public void Values() throws ParseException {
+  final public String Values() throws ParseException {
+                  Token t1 = null; Token t2;
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
     case OP_SUB:
     case INTEGER_CONST:
     case REAL_CONST:
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
       case OP_SUB:
-        jj_consume_token(OP_SUB);
+        t1 = jj_consume_token(OP_SUB);
         break;
       default:
-        jj_la1[5] = jj_gen;
+        jj_la1[7] = jj_gen;
         ;
       }
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
       case INTEGER_CONST:
-        jj_consume_token(INTEGER_CONST);
+        t2 = jj_consume_token(INTEGER_CONST);
         break;
       case REAL_CONST:
-        jj_consume_token(REAL_CONST);
+        t2 = jj_consume_token(REAL_CONST);
         break;
       default:
-        jj_la1[6] = jj_gen;
+        jj_la1[8] = jj_gen;
         jj_consume_token(-1);
         throw new ParseException();
       }
       break;
     case STRING_CONST:
-      jj_consume_token(STRING_CONST);
+      t2 = jj_consume_token(STRING_CONST);
       break;
     default:
-      jj_la1[7] = jj_gen;
+      jj_la1[9] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
+                String s = "";
+                if (t1 != null)
+                        s = s+t1.image.toUpperCase();
+                s = s+t2.image.toUpperCase();
+                {if (true) return s;}
+    throw new Error("Missing return statement in function");
   }
 
   final public void TypeDeclSec() throws ParseException {
     jj_consume_token(TYPES);
-    label_2:
+    label_3:
     while (true) {
       jj_consume_token(IDENTIFIER);
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
@@ -447,7 +520,7 @@ public class JASON implements JASONConstants {
         RecordSpecification();
         break;
       default:
-        jj_la1[8] = jj_gen;
+        jj_la1[10] = jj_gen;
         jj_consume_token(-1);
         throw new ParseException();
       }
@@ -457,8 +530,8 @@ public class JASON implements JASONConstants {
         ;
         break;
       default:
-        jj_la1[9] = jj_gen;
-        break label_2;
+        jj_la1[11] = jj_gen;
+        break label_3;
       }
     }
   }
@@ -475,7 +548,7 @@ public class JASON implements JASONConstants {
       jj_consume_token(REAL_CONST);
       break;
     default:
-      jj_la1[10] = jj_gen;
+      jj_la1[12] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
@@ -495,7 +568,7 @@ public class JASON implements JASONConstants {
 
   final public void VarDecls() throws ParseException {
                   int dt;
-    label_3:
+    label_4:
     while (true) {
       dt = DataType();
       IdList(dt);
@@ -509,8 +582,8 @@ public class JASON implements JASONConstants {
         ;
         break;
       default:
-        jj_la1[11] = jj_gen;
-        break label_3;
+        jj_la1[13] = jj_gen;
+        break label_4;
       }
     }
   }
@@ -534,7 +607,7 @@ public class JASON implements JASONConstants {
       t = jj_consume_token(BOOLEAN);
       break;
     default:
-      jj_la1[12] = jj_gen;
+      jj_la1[14] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
@@ -552,15 +625,15 @@ public class JASON implements JASONConstants {
                 id.setType(dt);
                 id.setCategory(SymbolTableManager.CATEGORY_VAR);
                 idList.add(id);
-    label_4:
+    label_5:
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
       case COMMA:
         ;
         break;
       default:
-        jj_la1[13] = jj_gen;
-        break label_4;
+        jj_la1[15] = jj_gen;
+        break label_5;
       }
       jj_consume_token(COMMA);
       t = jj_consume_token(IDENTIFIER);
@@ -591,7 +664,7 @@ public class JASON implements JASONConstants {
   }
 
   final public void SubProgramDecls() throws ParseException {
-    label_5:
+    label_6:
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
       case PROCEDURE:
@@ -601,7 +674,7 @@ public class JASON implements JASONConstants {
         FunctionDecl();
         break;
       default:
-        jj_la1[14] = jj_gen;
+        jj_la1[16] = jj_gen;
         jj_consume_token(-1);
         throw new ParseException();
       }
@@ -611,8 +684,8 @@ public class JASON implements JASONConstants {
         ;
         break;
       default:
-        jj_la1[15] = jj_gen;
-        break label_5;
+        jj_la1[17] = jj_gen;
+        break label_6;
       }
     }
   }
@@ -658,7 +731,7 @@ public class JASON implements JASONConstants {
       ParamDeclSec();
       break;
     default:
-      jj_la1[16] = jj_gen;
+      jj_la1[18] = jj_gen;
       ;
     }
     DeclSec();
@@ -669,14 +742,14 @@ public class JASON implements JASONConstants {
                 ArrayList<Identifier> idList = new ArrayList<Identifier>();
                 Identifier id;
     jj_consume_token(PARAMETERS);
-    label_6:
+    label_7:
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
       case VAR:
         tTransf = jj_consume_token(VAR);
         break;
       default:
-        jj_la1[17] = jj_gen;
+        jj_la1[19] = jj_gen;
         ;
       }
       dt = DataType();
@@ -704,8 +777,8 @@ public class JASON implements JASONConstants {
         ;
         break;
       default:
-        jj_la1[18] = jj_gen;
-        break label_6;
+        jj_la1[20] = jj_gen;
+        break label_7;
       }
     }
                 for (Identifier identifier : idList) {
@@ -769,7 +842,7 @@ public class JASON implements JASONConstants {
 
   final public void FunctionBlock() throws ParseException {
     jj_consume_token(BEGIN);
-    label_7:
+    label_8:
     while (true) {
       Statement();
       jj_consume_token(SEMICOLON);
@@ -785,8 +858,8 @@ public class JASON implements JASONConstants {
         ;
         break;
       default:
-        jj_la1[19] = jj_gen;
-        break label_7;
+        jj_la1[21] = jj_gen;
+        break label_8;
       }
     }
     jj_consume_token(RETURN);
@@ -799,15 +872,15 @@ public class JASON implements JASONConstants {
 //Comandos
   final public void Statements() throws ParseException {
     Statement();
-    label_8:
+    label_9:
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
       case SEMICOLON:
         ;
         break;
       default:
-        jj_la1[20] = jj_gen;
-        break label_8;
+        jj_la1[22] = jj_gen;
+        break label_9;
       }
       jj_consume_token(SEMICOLON);
       Statement();
@@ -865,13 +938,13 @@ public class JASON implements JASONConstants {
         ArgList();
         break;
       default:
-        jj_la1[21] = jj_gen;
+        jj_la1[23] = jj_gen;
         jj_consume_token(-1);
         throw new ParseException();
       }
       break;
     default:
-      jj_la1[22] = jj_gen;
+      jj_la1[24] = jj_gen;
       ;
     }
   }
@@ -883,7 +956,7 @@ public class JASON implements JASONConstants {
       Statements();
       break;
     default:
-      jj_la1[23] = jj_gen;
+      jj_la1[25] = jj_gen;
       ;
     }
     jj_consume_token(ENDIF);
@@ -897,22 +970,22 @@ public class JASON implements JASONConstants {
       jj_consume_token(PARETHESIS_CLOSE);
       break;
     default:
-      jj_la1[24] = jj_gen;
+      jj_la1[26] = jj_gen;
       ;
     }
   }
 
   final public void Arguments() throws ParseException {
     Condition();
-    label_9:
+    label_10:
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
       case COMMA:
         ;
         break;
       default:
-        jj_la1[25] = jj_gen;
-        break label_9;
+        jj_la1[27] = jj_gen;
+        break label_10;
       }
       jj_consume_token(COMMA);
       Condition();
@@ -922,15 +995,15 @@ public class JASON implements JASONConstants {
 //Expressões
   final public void Condition() throws ParseException {
     CompoundCondition();
-    label_10:
+    label_11:
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
       case OR:
         ;
         break;
       default:
-        jj_la1[26] = jj_gen;
-        break label_10;
+        jj_la1[28] = jj_gen;
+        break label_11;
       }
       jj_consume_token(OR);
       CompoundCondition();
@@ -939,15 +1012,15 @@ public class JASON implements JASONConstants {
 
   final public void CompoundCondition() throws ParseException {
     SimpleCondition();
-    label_11:
+    label_12:
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
       case AND:
         ;
         break;
       default:
-        jj_la1[27] = jj_gen;
-        break label_11;
+        jj_la1[29] = jj_gen;
+        break label_12;
       }
       jj_consume_token(AND);
       SimpleCondition();
@@ -967,14 +1040,14 @@ public class JASON implements JASONConstants {
       Expression();
       break;
     default:
-      jj_la1[28] = jj_gen;
+      jj_la1[30] = jj_gen;
       ;
     }
   }
 
   final public void Expression() throws ParseException {
     Term();
-    label_12:
+    label_13:
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
       case OP_ADD:
@@ -982,8 +1055,8 @@ public class JASON implements JASONConstants {
         ;
         break;
       default:
-        jj_la1[29] = jj_gen;
-        break label_12;
+        jj_la1[31] = jj_gen;
+        break label_13;
       }
       AddOp();
       Term();
@@ -992,7 +1065,7 @@ public class JASON implements JASONConstants {
 
   final public void Term() throws ParseException {
     Unary();
-    label_13:
+    label_14:
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
       case OP_MULT:
@@ -1001,8 +1074,8 @@ public class JASON implements JASONConstants {
         ;
         break;
       default:
-        jj_la1[30] = jj_gen;
-        break label_13;
+        jj_la1[32] = jj_gen;
+        break label_14;
       }
       MultOp();
       Unary();
@@ -1021,13 +1094,13 @@ public class JASON implements JASONConstants {
         jj_consume_token(OP_SUB);
         break;
       default:
-        jj_la1[31] = jj_gen;
+        jj_la1[33] = jj_gen;
         jj_consume_token(-1);
         throw new ParseException();
       }
       break;
     default:
-      jj_la1[32] = jj_gen;
+      jj_la1[34] = jj_gen;
       ;
     }
     Factor();
@@ -1048,7 +1121,7 @@ public class JASON implements JASONConstants {
         jj_consume_token(PARETHESIS_CLOSE);
         break;
       default:
-        jj_la1[33] = jj_gen;
+        jj_la1[35] = jj_gen;
         ;
       }
       VariableAux();
@@ -1063,7 +1136,7 @@ public class JASON implements JASONConstants {
         jj_consume_token(REAL_CONST);
         break;
       default:
-        jj_la1[34] = jj_gen;
+        jj_la1[36] = jj_gen;
         jj_consume_token(-1);
         throw new ParseException();
       }
@@ -1081,7 +1154,7 @@ public class JASON implements JASONConstants {
       jj_consume_token(PARETHESIS_CLOSE);
       break;
     default:
-      jj_la1[35] = jj_gen;
+      jj_la1[37] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
@@ -1096,7 +1169,7 @@ public class JASON implements JASONConstants {
       jj_consume_token(FALSE);
       break;
     default:
-      jj_la1[36] = jj_gen;
+      jj_la1[38] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
@@ -1108,7 +1181,7 @@ public class JASON implements JASONConstants {
   }
 
   final public void VariableAux() throws ParseException {
-    label_14:
+    label_15:
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
       case BRACKET_OPEN:
@@ -1116,8 +1189,8 @@ public class JASON implements JASONConstants {
         ;
         break;
       default:
-        jj_la1[37] = jj_gen;
-        break label_14;
+        jj_la1[39] = jj_gen;
+        break label_15;
       }
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
       case DOT:
@@ -1130,7 +1203,7 @@ public class JASON implements JASONConstants {
         jj_consume_token(BRACKET_CLOSE);
         break;
       default:
-        jj_la1[38] = jj_gen;
+        jj_la1[40] = jj_gen;
         jj_consume_token(-1);
         throw new ParseException();
       }
@@ -1158,7 +1231,7 @@ public class JASON implements JASONConstants {
       jj_consume_token(OP_GREATER);
       break;
     default:
-      jj_la1[39] = jj_gen;
+      jj_la1[41] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
@@ -1173,7 +1246,7 @@ public class JASON implements JASONConstants {
       jj_consume_token(OP_SUB);
       break;
     default:
-      jj_la1[40] = jj_gen;
+      jj_la1[42] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
@@ -1191,7 +1264,7 @@ public class JASON implements JASONConstants {
       jj_consume_token(OP_MOD);
       break;
     default:
-      jj_la1[41] = jj_gen;
+      jj_la1[43] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
@@ -1210,7 +1283,7 @@ public class JASON implements JASONConstants {
   public Token jj_nt;
   private int jj_ntk;
   private int jj_gen;
-  final private int[] jj_la1 = new int[42];
+  final private int[] jj_la1 = new int[44];
   static private int[] jj_la1_0;
   static private int[] jj_la1_1;
   static private int[] jj_la1_2;
@@ -1220,13 +1293,13 @@ public class JASON implements JASONConstants {
       jj_la1_init_2();
    }
    private static void jj_la1_init_0() {
-      jj_la1_0 = new int[] {0x0,0x0,0x0,0x880000,0x0,0x0,0x0,0x0,0x10000400,0x0,0x0,0x88200000,0x88200000,0x0,0x880000,0x880000,0x400000,0x0,0x88200000,0x44101000,0x0,0x44101000,0x44101000,0x4000,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,};
+      jj_la1_0 = new int[] {0x0,0x0,0x0,0x0,0x0,0x880000,0x0,0x0,0x0,0x0,0x10000400,0x0,0x0,0x88200000,0x88200000,0x0,0x880000,0x880000,0x400000,0x0,0x88200000,0x44101000,0x0,0x44101000,0x44101000,0x4000,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,};
    }
    private static void jj_la1_init_1() {
-      jj_la1_1 = new int[] {0x400,0x2,0x10,0x0,0x0,0x1000,0x0,0x1000,0x0,0x0,0x0,0x80,0x80,0x4000000,0x0,0x0,0x0,0x8,0x88,0x10000064,0x10000000,0x64,0x64,0x0,0x1000000,0x4000000,0x40000000,0x20000000,0x3f0000,0x1800,0xe000,0x1800,0x1800,0x1000000,0x0,0x81000300,0x300,0x8400000,0x8400000,0x3f0000,0x1800,0xe000,};
+      jj_la1_1 = new int[] {0x400,0x0,0x400,0x2,0x10,0x0,0x0,0x1000,0x0,0x1000,0x0,0x0,0x0,0x80,0x80,0x4000000,0x0,0x0,0x0,0x8,0x88,0x10000064,0x10000000,0x64,0x64,0x0,0x1000000,0x4000000,0x40000000,0x20000000,0x3f0000,0x1800,0xe000,0x1800,0x1800,0x1000000,0x0,0x81000300,0x300,0x8400000,0x8400000,0x3f0000,0x1800,0xe000,};
    }
    private static void jj_la1_init_2() {
-      jj_la1_2 = new int[] {0x0,0x0,0x0,0x0,0x8,0x0,0x3,0x83,0x0,0x8,0x3,0x8,0x8,0x0,0x0,0x0,0x0,0x0,0x8,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x3,0x8b,0x0,0x0,0x0,0x0,0x0,0x0,};
+      jj_la1_2 = new int[] {0x0,0x8,0x0,0x0,0x0,0x0,0x8,0x0,0x3,0x83,0x0,0x8,0x3,0x8,0x8,0x0,0x0,0x0,0x0,0x0,0x8,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x3,0x8b,0x0,0x0,0x0,0x0,0x0,0x0,};
    }
 
   /** Constructor with InputStream. */
@@ -1240,7 +1313,7 @@ public class JASON implements JASONConstants {
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 42; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 44; i++) jj_la1[i] = -1;
   }
 
   /** Reinitialise. */
@@ -1254,7 +1327,7 @@ public class JASON implements JASONConstants {
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 42; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 44; i++) jj_la1[i] = -1;
   }
 
   /** Constructor. */
@@ -1264,7 +1337,7 @@ public class JASON implements JASONConstants {
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 42; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 44; i++) jj_la1[i] = -1;
   }
 
   /** Reinitialise. */
@@ -1274,7 +1347,7 @@ public class JASON implements JASONConstants {
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 42; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 44; i++) jj_la1[i] = -1;
   }
 
   /** Constructor with generated Token Manager. */
@@ -1283,7 +1356,7 @@ public class JASON implements JASONConstants {
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 42; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 44; i++) jj_la1[i] = -1;
   }
 
   /** Reinitialise. */
@@ -1292,7 +1365,7 @@ public class JASON implements JASONConstants {
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 42; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 44; i++) jj_la1[i] = -1;
   }
 
   private Token jj_consume_token(int kind) throws ParseException {
@@ -1348,7 +1421,7 @@ public class JASON implements JASONConstants {
       la1tokens[jj_kind] = true;
       jj_kind = -1;
     }
-    for (int i = 0; i < 42; i++) {
+    for (int i = 0; i < 44; i++) {
       if (jj_la1[i] == jj_gen) {
         for (int j = 0; j < 32; j++) {
           if ((jj_la1_0[i] & (1<<j)) != 0) {

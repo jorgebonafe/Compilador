@@ -8,6 +8,7 @@ import java.awt.GraphicsEnvironment;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.TextArea;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
@@ -16,6 +17,9 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -50,8 +54,36 @@ public class IDE {
 			File f = new File(args[0]);
 			System.out.println(f);
 
+			FileInputStream fis = new FileInputStream(f);
+			
 			JASON parser = new JASON(new FileInputStream(f));
-			String result = parser.testParser(System.in);
+			StringBuilder builder = new StringBuilder();
+			int ch;
+			while((ch = fis.read()) != -1){
+			    builder.append((char)ch);
+			}
+			String program = builder.toString();
+		
+			InputStream is = new ByteArrayInputStream( program.getBytes() );
+			
+			int[] offset = new int[1];
+			
+			@SuppressWarnings("unused")
+			HashMap<String, String> definitions = parser.preProcess(is, offset);
+		
+			String s1 = program.substring(0,offset[0]);
+			String s2 = program.substring(offset[0]);
+			
+	    Iterator it = definitions.entrySet().iterator();
+	    while (it.hasNext()) {
+	        Map.Entry pair = (Map.Entry)it.next();
+	        s2.replace((String)pair.getKey(),(String)pair.getValue());
+	        it.remove();
+	    }
+			
+	    program = s1+s2;
+	    is = new ByteArrayInputStream( program.getBytes() );
+			String result = parser.testParser(is);
 			if (parser.getErrorCode() > 0) {
 				System.out.println(parser.getErrorMessage());
 			}
@@ -143,7 +175,27 @@ public class IDE {
 				messages.setText("");
 
 				JASON parser = new JASON(is);
+				
+				int[] offset = new int[1];
+				
+				@SuppressWarnings("unused")
+				HashMap<String, String> definitions = parser.preProcess(is, offset);
+			
+				String s1 = editor.getText().substring(0,offset[0]);
+				String s2 = editor.getText().substring(offset[0]);
+				
+		    Iterator it = definitions.entrySet().iterator();
+		    while (it.hasNext()) {
+		        Map.Entry pair = (Map.Entry)it.next();
+		        s2.replace((String)pair.getKey(),(String)pair.getValue());
+		        it.remove();
+		    }
+		    TextArea ta = new TextArea();
+		    ta.setText(s1+s2);
+
+				is = new ByteArrayInputStream( ta.getText().getBytes() );
 				String result = parser.testParser(is);
+				
 				if (parser.getErrorCode() > 0) {
 					messages.setForeground(Color.red);
 					messages.setText(parser.getErrorMessage());

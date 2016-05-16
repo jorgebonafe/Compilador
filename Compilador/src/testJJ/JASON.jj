@@ -4,6 +4,9 @@
 options {
   static = false;
   ERROR_REPORTING = true;
+  TRACK_TOKENS =true;
+  TOKEN_EXTENDS ="BaseToken"; 
+  COMMON_TOKEN_ACTION=true;
 //  DEBUG_PARSER = true;
 }
 
@@ -12,14 +15,17 @@ package testJJ;
 
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class JASON {
 	int errorCode = 0;
 	String result = "";
 	String errorMessage = "";
-	int currentLevel = 0;
-	SymbolTableManager STManager = new SymbolTableManager();
+	int currentLevel;
+	SymbolTableManager STManager;
 	ArrayList<String> errorParams;
+	HashMap<String,String> definitions;
+	int offset = 0;
 
 	public int getErrorCode()
 	{
@@ -30,10 +36,26 @@ public class JASON {
 	{
 		return errorMessage;
 	}
+
+	public HashMap<String,String> preProcess(InputStream is, int[] charPos)	{
+		result = "";
+		int currentLevel = 0;
+		STManager = new SymbolTableManager();
+		definitions = new HashMap<String,String>();
+		try {
+			this.PreProcess();
+			charPos[0] = offset;
+		}
+		catch (Exception e) {}
+		return definitions;
+	}
 	
 	public String testParser(InputStream is)	{
+		ReInit(is);
 		result = "";
 		errorCode = 0;
+		int currentLevel = 0;
+		STManager = new SymbolTableManager();
 		
 		try {
 			this.Program();
@@ -451,6 +473,25 @@ TOKEN [IGNORE_CASE]:
 }
 
 
+void PreProcess(): {} { Header() PreDeclSec() SkipRest() }
+void PreDeclSec(): {} { (PreDefineDeclSec())? }
+void PreDefineDeclSec(): {Token t; String v;} {
+	<DEFINE> ( t = <IDENTIFIER> <OP_EQUALS>	v = Values()
+	{
+		definitions.put(t.image,v);
+	}
+	<SEMICOLON> )+
+}
+void SkipRest(): {Token t;} {
+	{
+		t = getToken(0);
+		offset = t.absoluteBeginColumn;
+		while (t.kind!=0) {
+			t = getNextToken();
+		}
+	}
+}
+
 void Program(): {} { Header() DeclSec() Block() <DOT> }
 void Header(): {} { <PROGRAM> <IDENTIFIER> <SEMICOLON> }
 void Block(): {} { <BEGIN> Statements() <END> }
@@ -458,8 +499,19 @@ void Block(): {} { <BEGIN> Statements() <END> }
 //Declarações
 
 void DeclSec(): {} { (DefineDeclSec())? (TypeDeclSec())? (VarDeclSec())? (SubProgramDecls())? }
-void DefineDeclSec(): {} { <DEFINE> ( <IDENTIFIER> <OP_EQUALS> Values() <SEMICOLON> )+ }
-void Values(): {} { ( <OP_SUB> )? (<INTEGER_CONST> | <REAL_CONST>) | <STRING_CONST> }
+void DefineDeclSec(): {} {
+	<DEFINE> ( <IDENTIFIER> <OP_EQUALS> Values() <SEMICOLON> )+
+}
+String Values(): {Token t1 = null; Token t2;} {
+	( ( t1 = <OP_SUB> )? ( t2 = <INTEGER_CONST> | t2 = <REAL_CONST>) |
+	t2 = <STRING_CONST> )
+	{
+		String s = "";
+		if (t1 != null)
+			s = s+t1.image.toUpperCase();
+		s = s+t2.image.toUpperCase();
+		return s;	}
+}
 void TypeDeclSec(): {} { <TYPES> ( <IDENTIFIER> ( ArraySpecification() | RecordSpecification() ) <SEMICOLON> )+ }
 void ArraySpecification(): {} { <ARRAY> DataType() <BRACKET_OPEN> (<INTEGER_CONST> | <REAL_CONST>) <BRACKET_CLOSE> }
 void RecordSpecification(): {} { <RECORD> VarDecls() <END> }
@@ -660,3 +712,19 @@ void RelOp(): {} { ( <OP_EQUALS> | <OP_DIFFERENT> | <OP_GREATER_OR_EQUAL> | <OP_
 void AddOp(): {} { ( <OP_ADD> | <OP_SUB> ) }
 void MultOp(): {} { ( <OP_MULT> | <OP_DIV> | <OP_MOD> ) }
 void Argument(): {} { Condition() }
+
+TOKEN_MGR_DECLS :
+{
+	public void CommonTokenAction(Token t)
+	{
+		t.absoluteBeginColumn = getCurrentTokenAbsolutePosition();
+		t.absoluteEndColumn = t.absoluteBeginColumn + t.image.length();
+	}
+
+	public int getCurrentTokenAbsolutePosition()
+	{
+		if (input_stream instanceof SimpleCharStream)
+			return ((SimpleCharStream)input_stream).getAbsoluteTokenBengin();
+		return -1;
+	}
+}
