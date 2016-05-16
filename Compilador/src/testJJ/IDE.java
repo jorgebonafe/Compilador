@@ -184,12 +184,13 @@ public class IDE {
 				String s1 = editor.getText().substring(0,offset[0]);
 				String s2 = editor.getText().substring(offset[0]);
 				
-		    Iterator it = definitions.entrySet().iterator();
-		    while (it.hasNext()) {
-		        Map.Entry pair = (Map.Entry)it.next();
-		        s2.replace((String)pair.getKey(),(String)pair.getValue());
-		        it.remove();
-		    }
+
+				for (Map.Entry<String, String> entry : definitions.entrySet()) {
+					String s = (String)entry.getValue();
+					if (s.charAt(0)== '\'' && s.charAt(1)== '\\' && s.charAt(2)!='\\')
+						s = s.substring(0,1)+'\\'+s.substring(1);
+					s2 = s2.replaceAll("\\b(?i)"+entry.getKey()+"\\b",s);
+				}
 		    TextArea ta = new TextArea();
 		    ta.setText(s1+s2);
 
