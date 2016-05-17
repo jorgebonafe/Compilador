@@ -1,5 +1,5 @@
 /**
- * JavaCC template file created by SF JavaCC plugin 1.5.28+ wizard for JavaCC 1.5.0+
+ ** -  JavaCC template file created by SF JavaCC plugin 1.5.28+ wizard for JavaCC 1.5.0+
  */
 options {
   static = false;
@@ -514,7 +514,8 @@ String Values(): {Token t1 = null; Token t2;} {
 		if (t1 != null)
 			s = s+t1.image.toUpperCase();
 		s = s+t2.image.toUpperCase();
-		return s;	}
+		return s;
+	}
 }
 void TypeDeclSec(): {} { <TYPES> ( <IDENTIFIER> ( ArraySpecification() | RecordSpecification() ) <SEMICOLON> )+ }
 void ArraySpecification(): {} { <ARRAY> DataType() <BRACKET_OPEN> (<INTEGER_CONST> | <REAL_CONST>) <BRACKET_CLOSE> }
@@ -528,7 +529,8 @@ int DataType(): {Token t;} {
 	( t = <REAL> | t = <INTEGER> |
 	  t = <IDENTIFIER> | t = <STRING> | t = <BOOLEAN> )
 	{
-		return t.kind;	}
+		return t.kind;
+	}
 }
 
 void IdList(int dt): {ArrayList<Identifier> idList; Token t;} {
@@ -551,23 +553,28 @@ void IdList(int dt): {ArrayList<Identifier> idList; Token t;} {
 		id.setLevel(currentLevel);
 		id.setType(dt);
 		id.setCategory(SymbolTableManager.CATEGORY_VAR);
-		idList.add(id);	}
+		idList.add(id);
+	}
 	)*
 	{
 		for (Identifier identifier : idList) {
-			if (STManager.addSymbol(identifier))			{				result += "ID:"+identifier.getID()+"\n";
+			if (STManager.addSymbol(identifier))
+			{
+				result += "ID:"+identifier.getID()+"\n";
 				result += "Tipo:"+identifier.getTypeName()+"\n";
 				result += "Nível:"+currentLevel+"\n";
 				result += "Categoria:"+identifier.getCategoryName()+"\n";
 				result += "----------------------"+"\n";
 			}
-			else			{
+			else
+			{
 				errorCode = ErrorConstants.ERR_DUPLICATE_IDENTIFIER;
 				errorParams = new ArrayList<String>();
 				errorParams.add(id.getID());
 				throw generateParseException();
 			}
-		}	}
+		}
+	}
 }
 
 void SubProgramDecls(): {} { ( ProcDecl() | FunctionDecl() )+ }
@@ -604,7 +611,8 @@ void ProcHeader(): {Token t;} {
 			errorParams = new ArrayList<String>();
 			errorParams.add(id.getID());
 			throw generateParseException();
-		}	}
+		}
+	}
 	<SEMICOLON>
 }
 
@@ -618,13 +626,16 @@ void ParamDeclSec(): {int dt;Token t;Token tTransf = null;} {
 	dt = DataType()
 	t = <IDENTIFIER>
 	{
-		id = new Identifier();		id.setID(t.image.toUpperCase());
+		id = new Identifier();
+		id.setID(t.image.toUpperCase());
 		id.setLevel(currentLevel);
 		id.setType(dt);
 		id.setCategory(SymbolTableManager.CATEGORY_PARAM);
 		if (tTransf==null) {
-			id.setTransferType(SymbolTableManager.TRANSFER_VALUE);		}
-		else {			id.setTransferType(SymbolTableManager.TRANSFER_REF);
+			id.setTransferType(SymbolTableManager.TRANSFER_VALUE);
+		}
+		else {
+			id.setTransferType(SymbolTableManager.TRANSFER_REF);
 		}
 		idList.add(id);
 	}
@@ -666,7 +677,8 @@ void FunctionDecl(): {} {
 void FunctionHeader(): {Token t;int dt;} {
 	<FUNCTION> t = <IDENTIFIER>
 	<RETURNS> dt = DataType()
-	{		Identifier id = new Identifier();
+	{
+		Identifier id = new Identifier();
 		id.setID(t.image.toUpperCase());
 		id.setLevel(currentLevel);
 		id.setType(dt);
@@ -719,12 +731,14 @@ void Factor(): {Token t;} {
 			errorParams = new ArrayList<String>();
 			errorParams.add(t.image.toUpperCase());
 			throw generateParseException();
-		}	}
+		}
+	}
 	( <PARETHESIS_OPEN> Arguments() <PARETHESIS_CLOSE> )? VariableAux() | (<INTEGER_CONST> | <REAL_CONST>) | <STRING_CONST> | <NOT> Factor() | <PARETHESIS_OPEN> Condition() <PARETHESIS_CLOSE>
 	}
 void Bool(): {} { ( <TRUE> | <FALSE> ) }
 void Variable(): {Token t;} {
-	t = <IDENTIFIER>	{
+	t = <IDENTIFIER>
+	{
 		Identifier id = STManager.getIdentifier(t.image);
 		if (id==null)
 		{
