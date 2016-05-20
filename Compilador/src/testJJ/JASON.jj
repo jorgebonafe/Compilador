@@ -504,11 +504,17 @@ void Block(): {} { <BEGIN> Statements() <END> }
 
 //Declarações
 
-void DeclSec(): {} { (DefineDeclSec())? (TypeDeclSec())? (VarDeclSec())? (SubProgramDecls())? }
-void DefineDeclSec(): {} { <DEFINE> ( <IDENTIFIER> <OP_EQUALS> Values() <SEMICOLON> )+ }
+void DeclSec(): {} { 
+	(DefineDeclSec())? (TypeDeclSec())? (VarDeclSec())? (SubProgramDecls())? 
+}
+
+void DefineDeclSec(): {} { 
+	<DEFINE> ( <IDENTIFIER> {r0();} <OP_EQUALS> Values() <SEMICOLON> {r0a();})+ 
+}
+
 String Values(): {Token t1 = null; Token t2;} {
-	( ( t1 = <OP_SUB> )? ( t2 = <INTEGER_CONST> | t2 = <REAL_CONST>) |
-	t2 = <STRING_CONST> )
+	( ( t1 = <OP_SUB> )? ( t2 = <INTEGER_CONST> {r0c();}| t2 = <REAL_CONST>) {r0c();}|
+	t2 = <STRING_CONST> {r0b();})
 	{
 		String s = "";
 		if (t1 != null)
@@ -517,12 +523,29 @@ String Values(): {Token t1 = null; Token t2;} {
 		return s;
 	}
 }
-void TypeDeclSec(): {} { <TYPES> ( <IDENTIFIER> ( ArraySpecification() | RecordSpecification() ) <SEMICOLON> )+ }
-void ArraySpecification(): {} { <ARRAY> DataType() <BRACKET_OPEN> (<INTEGER_CONST> | <REAL_CONST>) <BRACKET_CLOSE> }
-void RecordSpecification(): {} { <RECORD> VarDecls() <END> }
-void VarDeclSec(): {} { <VARIABLES> VarDecls() }
+
+void TypeDeclSec(): {} { 
+	<TYPES> ( <IDENTIFIER> {r1();} ( ArraySpecification() {r2();} | RecordSpecification() {r2a();}) <SEMICOLON> )+ 
+}
+
+void ArraySpecification(): {} { 
+	<ARRAY> {r10();} DataType() <BRACKET_OPEN> (<INTEGER_CONST> | <REAL_CONST>) {r12();} <BRACKET_CLOSE> 
+}
+
+void RecordSpecification(): {} { 
+	<RECORD> {r10a();} VarDeclsRecord() <END> }
+}
+
+void VarDeclsRecord(): {int dt;} {
+	( dt = DataType() {r4a();} IdList(dt) {r3();} <SEMICOLON> )+
+}
+
+void VarDeclSec(): {} { 
+	<VARIABLES> VarDecls() 
+}
+
 void VarDecls(): {int dt;} {
-	( dt = DataType() IdList(dt) <SEMICOLON> )+
+	( dt = DataType() {r4();} IdList(dt) {r3();} <SEMICOLON> )+
 }
 
 int DataType(): {Token t;} {
@@ -577,20 +600,23 @@ void IdList(int dt): {ArrayList<Identifier> idList; Token t;} {
 	}
 }
 
-void SubProgramDecls(): {} { ( ProcDecl() | FunctionDecl() )+ }
+void SubProgramDecls(): {} { 
+	( ProcDecl() | FunctionDecl() )+ 
+}
 
 void ProcDecl(): {} {
-	ProcHeader()
+	ProcHeader() {r5(); r13()}
 	{
 		currentLevel++;
 	}
-	SubProgramDeclSec() Block()
+	SubProgramDeclSec() Block() {r8();}
 	{
 		STManager.removeLevel(currentLevel);
 		currentLevel--;
 	}
 	<SEMICOLON>
 }
+
 void ProcHeader(): {Token t;} {
 	<PROCEDURE> t = <IDENTIFIER>
 	{
@@ -616,15 +642,18 @@ void ProcHeader(): {Token t;} {
 	<SEMICOLON>
 }
 
-void SubProgramDeclSec(): {} {(ParamDeclSec())? DeclSec() }
+void SubProgramDeclSec(): {} {
+	(ParamDeclSec())? DeclSec() 
+}
+
 void ParamDeclSec(): {int dt;Token t;Token tTransf = null;} {
 	{
 		ArrayList<Identifier> idList = new ArrayList<Identifier>();
 		Identifier id;
 	}
-	<PARAMETERS> ( (tTransf = <VAR>)?
-	dt = DataType()
-	t = <IDENTIFIER>
+	<PARAMETERS> ( {r14();} (tTransf = <VAR> {r15();})?
+	dt = DataType() {r19();}
+	t = <IDENTIFIER> {r18();}
 	{
 		id = new Identifier();
 		id.setID(t.image.toUpperCase());
@@ -639,7 +668,7 @@ void ParamDeclSec(): {int dt;Token t;Token tTransf = null;} {
 		}
 		idList.add(id);
 	}
-	<SEMICOLON> )+
+	<SEMICOLON> )+ {r20();}
 	{
 		for (Identifier identifier : idList) {
 			if (STManager.addSymbol(identifier))
@@ -667,16 +696,17 @@ void FunctionDecl(): {} {
 	{
 		currentLevel++;
 	}
-	SubProgramDeclSec() FunctionBlock()
+	SubProgramDeclSec() FunctionBlock() {r8();}
 	{
 		STManager.removeLevel(currentLevel);
 		currentLevel--;
 	}
 	<SEMICOLON>
 }
+
 void FunctionHeader(): {Token t;int dt;} {
-	<FUNCTION> t = <IDENTIFIER>
-	<RETURNS> dt = DataType()
+	<FUNCTION> t = <IDENTIFIER> {r6(); r13();}
+	<RETURNS> dt = DataType() {r7();}
 	{
 		Identifier id = new Identifier();
 		id.setID(t.image.toUpperCase());
@@ -706,23 +736,56 @@ void FunctionBlock(): {} { <BEGIN> ( Statement() <SEMICOLON> )+  <RETURN> <PARET
 //Comandos
 
 void Statements(): {} { Statement() ( <SEMICOLON> Statement() )* }
-void Statement(): {} { ( <READ> Variable() | <SET> Variable() <OP_EQUALS> Expression() | <WRITE> Variable() | <IF> Condition() <THEN> Statements() ElseClause() | <WHILE> Condition() <DO> Statements() <ENDWHILE> | <UNTIL> Condition() <DO> Statements() <ENDUNTIL> | <CALL> <IDENTIFIER> ArgList() )? }
-void ElseClause(): {} { ( <ELSE> Statements() )? <ENDIF> }
-void ArgList(): {} { ( <PARETHESIS_OPEN> Arguments() <PARETHESIS_CLOSE> )? }
-void Arguments(): {} { Condition() (<COMMA> Condition() )* }
+void Statement(): {} { 
+	( <READ> Variable() {r21();} 
+	| <SET> Variable() {r25();} <OP_EQUALS> Expression() {r22a();}
+	| <WRITE> Variable() 
+	| <IF> Condition() <THEN> Statements() ElseClause() 
+	| <WHILE> Condition() <DO> Statements() <ENDWHILE> | <UNTIL> Condition() <DO> Statements() <ENDUNTIL> 
+	| <CALL> <IDENTIFIER> {r21(); r25a();} ( {/* ou de alguma forma */r25();} ArgList() {r24();} )? 
+}
+
+void ElseClause(): {} {
+	( <ELSE> Statements() )? <ENDIF> 
+}
+
+void ArgList(): {} {
+	( <PARETHESIS_OPEN> Arguments() <PARETHESIS_CLOSE> )? 
+}
+
+void Arguments(): {} {
+	Condition() {r23();} (<COMMA> Condition() {r23();})* 
+}
 
 
 //Expressões
-void Condition(): {} { CompoundCondition() ( <OR> CompoundCondition() )* }
-void CompoundCondition(): {} { SimpleCondition() ( <AND> SimpleCondition() )* }
-void SimpleCondition(): {} { Expression() (RelOp() Expression())? }
-void Expression(): {} { Term() ( AddOp() Term() )* }
-void Term(): {} { Unary() ( MultOp() Unary() )* }
-void Unary(): {} { ( ( <OP_ADD> | <OP_SUB> ) )? Factor() }
+void Condition(): {} { 
+	CompoundCondition() ( <OR> CompoundCondition() )* 
+}
+
+void CompoundCondition(): {} { 
+	SimpleCondition() ( <AND> SimpleCondition() )* 
+}
+
+void SimpleCondition(): {} { 
+	Expression() (RelOp() Expression())? 
+}
+
+void Expression(): {} { 
+	Term() ( AddOp() Term() )* 
+}
+
+void Term(): {} { 
+	Unary() ( MultOp() Unary() )* 
+}
+
+void Unary(): {} { 
+	( ( <OP_ADD> | <OP_SUB> ) )? Factor() 
+}
 
 void Factor(): {Token t;} {
 	Bool() |
-	t = <IDENTIFIER>
+	t = <IDENTIFIER> {r21(); r22a();}
 	{
 		Identifier id = STManager.getIdentifier(t.image);
 		if (id==null)
@@ -733,11 +796,19 @@ void Factor(): {Token t;} {
 			throw generateParseException();
 		}
 	}
-	( <PARETHESIS_OPEN> Arguments() <PARETHESIS_CLOSE> )? VariableAux() | (<INTEGER_CONST> | <REAL_CONST>) | <STRING_CONST> | <NOT> Factor() | <PARETHESIS_OPEN> Condition() <PARETHESIS_CLOSE>
-	}
-void Bool(): {} { ( <TRUE> | <FALSE> ) }
+	( <PARETHESIS_OPEN> {/* fazer ou de alguma forma */r22a();} Arguments() {r24();} <PARETHESIS_CLOSE> )? VariableAux() 
+	| (<INTEGER_CONST> | <REAL_CONST>) {r26();}
+	| <STRING_CONST> 
+	| <NOT> Factor() 
+	| <PARETHESIS_OPEN> Condition() <PARETHESIS_CLOSE>
+}
+
+void Bool(): {} { 
+	( <TRUE> | <FALSE> ) 
+}
+
 void Variable(): {Token t;} {
-	t = <IDENTIFIER>
+	t = <IDENTIFIER> {r21();}
 	{
 		Identifier id = STManager.getIdentifier(t.image);
 		if (id==null)
@@ -750,9 +821,10 @@ void Variable(): {Token t;} {
 	}
 	VariableAux()
 }
+
 void VariableAux(): {Token t;} {
-	( <DOT> t = <IDENTIFIER>
-// TODO
+	( <DOT> t = <IDENTIFIER> {r21();}
+	// TODO
 	| <BRACKET_OPEN>  Expression() <BRACKET_CLOSE> )*
 }
 void RelOp(): {} { ( <OP_EQUALS> | <OP_DIFFERENT> | <OP_GREATER_OR_EQUAL> | <OP_LESS_OR_EQUAL> | <OP_LESS> | <OP_GREATER> ) }
