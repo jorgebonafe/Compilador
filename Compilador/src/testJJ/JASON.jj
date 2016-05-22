@@ -27,6 +27,91 @@ public class JASON {
 	HashMap<String,String> definitions;
 	int offset = 0;
 
+	public Identifier r0(Token t) throws ParseException {
+		Identifier id = new Identifier();
+		id.setID(t.image.toUpperCase());
+		id.setLevel(currentLevel);
+		
+		if (!STManager.addSymbol(id))
+		{
+			errorCode = ErrorConstants.ERR_DUPLICATE_IDENTIFIER;
+			errorParams = new ArrayList<String>();
+			errorParams.add(id.getID());
+			throw generateParseException();
+		}
+		return id;
+	}
+
+	public void r0a(Identifier id, int cat, int type, String value) {
+		id.setCategory(cat);
+		id.setType(type);		id.setValue(value);
+	}
+
+	public void r1() {
+		
+//		1: Se declarado(TS,s,nivelcorr) então erro(‘id já declarado’);//		insere(TS, s, ref);//		permissão_tipo_array := true;
+	}
+	
+	public void r2(){}
+
+	public void r2a(){}
+	
+	public void r3(){}
+	
+	public void r4(){}
+
+	public void r4a(){}
+	
+	public void r5(){}
+	
+	public void r6(){}
+	
+	public void r7(){}
+	
+	public void r8(){}
+	
+	public void r9(){}
+	
+	public void r10(){}
+
+	public void r10a(){}
+	
+	public void r11(){}
+	
+	public void r12(){}
+	
+	public void r13(){}
+	
+	public void r14(){}
+	
+	public void r15(){}
+	
+	public void r16(){}
+	
+	public void r17(){}
+	
+	public void r18(){}
+	
+	public void r19(){}
+	
+	public void r20(){}
+	
+	public void r21(){}
+	
+	public void r22(){}
+
+	public void r22a(){}
+	
+	public void r23(){}
+	
+	public void r24(){}
+	
+	public void r25(){}
+
+	public void r25a(){}
+	
+	public void r26(){}
+	
 	public int getErrorCode()
 	{
 		return errorCode;
@@ -37,19 +122,6 @@ public class JASON {
 		return errorMessage;
 	}
 
-	public HashMap<String,String> preProcess(InputStream is, int[] charPos)	{
-		result = "";
-		int currentLevel = 0;
-		STManager = new SymbolTableManager();
-		definitions = new HashMap<String,String>();
-		try {
-			this.PreProcess();
-			charPos[0] = offset;
-		}
-		catch (Exception e) {}
-		return definitions;
-	}
-	
 	public String testParser(InputStream is)	{
 		ReInit(is);
 		result = "";
@@ -74,7 +146,13 @@ public class JASON {
 					errorParams.get(0)+
 					") na linha " + e.currentToken.beginLine + ", coluna "
 					+ e.currentToken.beginColumn;
-					break; 
+					break;
+				case ErrorConstants.ERR_CONSTANT_NOT_DEFINED: 
+					errorMessage = "Constante não definida ("+
+					errorParams.get(0)+
+					") na linha " + e.currentToken.beginLine + ", coluna "
+					+ e.currentToken.beginColumn;
+					break;
 				default:
 					errorCode = -1;
 					errorMessage += e.getMessage() + "\u005cn";
@@ -479,28 +557,13 @@ TOKEN [IGNORE_CASE]:
 }
 
 
-void PreProcess(): {} { Header() PreDeclSec() SkipRest() }
-void PreDeclSec(): {} { (PreDefineDeclSec())? }
-void PreDefineDeclSec(): {Token t; String v;} {
-	<DEFINE> ( t = <IDENTIFIER> <OP_EQUALS>	v = Values()
-	{
-		definitions.put(t.image,v);
-	}
-	<SEMICOLON> )+
-}
-void SkipRest(): {Token t;} {
-	{
-		t = getToken(0);
-		offset = t.absoluteBeginColumn;
-		while (t.kind!=0) {
-			t = getNextToken();
-		}
-	}
-}
-
 void Program(): {} { Header() DeclSec() Block() <DOT> }
 void Header(): {} { <PROGRAM> <IDENTIFIER> <SEMICOLON> }
 void Block(): {} { <BEGIN> Statements() <END> }
+
+
+
+
 
 //Declarações
 
@@ -508,13 +571,22 @@ void DeclSec(): {} {
 	(DefineDeclSec())? (TypeDeclSec())? (VarDeclSec())? (SubProgramDecls())? 
 }
 
-void DefineDeclSec(): {} { 
-	<DEFINE> ( <IDENTIFIER> {r0();} <OP_EQUALS> Values() <SEMICOLON> {r0a();})+ 
+void DefineDeclSec():
+	{
+		Token t;
+		int type[] = new int[1];
+		String value[] = new String[1];
+	} { 
+	<DEFINE> ( t = <IDENTIFIER> { Identifier id = r0(t);}
+	<OP_EQUALS> Values(id, type,value)
+	<SEMICOLON> {r0a(id,SymbolTableManager.CATEGORY_CONST,type[0],value[0]);})+ 
 }
 
-String Values(): {Token t1 = null; Token t2;} {
-	( ( t1 = <OP_SUB> )? ( t2 = <INTEGER_CONST> {r0c();}| t2 = <REAL_CONST>) {r0c();}|
-	t2 = <STRING_CONST> {r0b();})
+String Values(Identifier id, int type[], String value[]): {Token t1 = null; Token t2;} {
+	( ( t1 = <OP_SUB> )?
+	(  t2 = <INTEGER_CONST> {type[0]=JASONConstants.INTEGER;value[0]=t2.image;}
+	 | t2 = <REAL_CONST>    {type[0]=JASONConstants.REAL;value[0]=t2.image;})
+	 | t2 = <STRING_CONST>  {type[0]=JASONConstants.STRING;value[0]=t2.image;})
 	{
 		String s = "";
 		if (t1 != null)
@@ -533,7 +605,7 @@ void ArraySpecification(): {} {
 }
 
 void RecordSpecification(): {} { 
-	<RECORD> {r10a();} VarDeclsRecord() <END> }
+	<RECORD> {r10a();} VarDeclsRecord() <END>
 }
 
 void VarDeclsRecord(): {int dt;} {
@@ -605,7 +677,7 @@ void SubProgramDecls(): {} {
 }
 
 void ProcDecl(): {} {
-	ProcHeader() {r5(); r13()}
+	ProcHeader() {r5(); r13();}
 	{
 		currentLevel++;
 	}
@@ -742,7 +814,7 @@ void Statement(): {} {
 	| <WRITE> Variable() 
 	| <IF> Condition() <THEN> Statements() ElseClause() 
 	| <WHILE> Condition() <DO> Statements() <ENDWHILE> | <UNTIL> Condition() <DO> Statements() <ENDUNTIL> 
-	| <CALL> <IDENTIFIER> {r21(); r25a();} ( {/* ou de alguma forma */r25();} ArgList() {r24();} )? 
+	| <CALL> <IDENTIFIER> {r21(); r25a();} ArgList() )
 }
 
 void ElseClause(): {} {
@@ -750,7 +822,7 @@ void ElseClause(): {} {
 }
 
 void ArgList(): {} {
-	( <PARETHESIS_OPEN> Arguments() <PARETHESIS_CLOSE> )? 
+	(  {/* ou de alguma forma */r25();}  <PARETHESIS_OPEN> Arguments() <PARETHESIS_CLOSE>  {r24();} )? 
 }
 
 void Arguments(): {} {
