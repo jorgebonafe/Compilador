@@ -2,12 +2,12 @@
  ** -  JavaCC template file created by SF JavaCC plugin 1.5.28+ wizard for JavaCC 1.5.0+
  */
 options {
-  static = false;
-  ERROR_REPORTING = true;
-  TRACK_TOKENS =true;
-  TOKEN_EXTENDS ="BaseToken"; 
-  COMMON_TOKEN_ACTION=true;
-//  DEBUG_PARSER = true;
+	static = false;
+	ERROR_REPORTING = true;
+	TRACK_TOKENS =true;
+	TOKEN_EXTENDS ="BaseToken"; 
+	COMMON_TOKEN_ACTION=true;
+	//  DEBUG_PARSER = true;
 }
 
 PARSER_BEGIN(JASON)
@@ -26,14 +26,16 @@ public class JASON {
 	ArrayList<String> errorParams;
 	HashMap<String,String> definitions;
 	int offset = 0;
+	boolean permissao_tipo_array = false;
+
+	Identifier current_id = null;
 
 	public Identifier r0(Token t) throws ParseException {
 		Identifier id = new Identifier();
 		id.setID(t.image.toUpperCase());
 		id.setLevel(currentLevel);
-		
-		if (!STManager.addSymbol(id))
-		{
+
+		if (!STManager.addSymbol(id)) {
 			errorCode = ErrorConstants.ERR_DUPLICATE_IDENTIFIER;
 			errorParams = new ArrayList<String>();
 			errorParams.add(id.getID());
@@ -48,70 +50,142 @@ public class JASON {
 	}
 
 	public void r1() {
-		
-//		1: Se declarado(TS,s,nivelcorr) então erro(‘id já declarado’);//		insere(TS, s, ref);//		permissão_tipo_array := true;
+		//		1: Se declarado(TS,s,nivelcorr) então erro(‘id já declarado’);		//		insere(TS, s, ref);		permissao_tipo_array = true;
 	}
-	
+
 	public void r2(){}
 
 	public void r2a(){}
-	
-	public void r3(){}
-	
+
+	public void r3(Token t, int type) throws ParseException {
+		Identifier id = new Identifier();
+		id.setID(t.image.toUpperCase());
+		id.setLevel(currentLevel);
+		id.setType(type);
+		id.setCategory(SymbolTableManager.CATEGORY_VAR);
+
+		if (!STManager.addSymbol(id)) {
+			errorCode = ErrorConstants.ERR_DUPLICATE_IDENTIFIER;
+			errorParams = new ArrayList<String>();
+			errorParams.add(id.getID());
+			throw generateParseException();
+		}
+		permissao_tipo_array = true;
+	}
+
 	public void r4(){}
 
 	public void r4a(){}
-	
-	public void r5(){}
-	
+
+	public void r5(Token t) throws ParseException {
+		Identifier id = new Identifier();
+		id.setID(t.image.toUpperCase());
+		id.setLevel(currentLevel);
+		id.setCategory(SymbolTableManager.CATEGORY_PROCEDURE);
+		if (!STManager.addSymbol(id)) {
+			errorCode = ErrorConstants.ERR_DUPLICATE_IDENTIFIER;
+			errorParams = new ArrayList<String>();
+			errorParams.add(id.getID());
+			throw generateParseException();
+		}
+	}
+
 	public void r6(){}
-	
+
 	public void r7(){}
-	
+
 	public void r8(){}
-	
+
 	public void r9(){}
-	
-	public void r10(){}
+
+	public void r10() throws ParseException {
+		if (permissao_tipo_array) {
+			//TODO		}
+		else {
+			errorCode = ErrorConstants.ERR_MULTIDIM_ARRAY;
+			throw generateParseException();		}
+	}
 
 	public void r10a(){}
-	
+
 	public void r11(){}
-	
+
 	public void r12(){}
-	
-	public void r13(){}
-	
+
+	public void r13() {
+		permissao_tipo_array = true;
+		//pos := ref; //guarda a entrada de procedimento ou função
+	}
+
 	public void r14(){}
-	
+
 	public void r15(){}
-	
+
 	public void r16(){}
-	
+
 	public void r17(){}
-	
+
 	public void r18(){}
-	
+
 	public void r19(){}
-	
+
 	public void r20(){}
-	
-	public void r21(){}
-	
-	public void r22(){}
 
-	public void r22a(){}
-	
+	public void r21(Token t) throws ParseException {
+		Identifier id = STManager.getIdentifier(t.image);
+		if (id==null) {
+			errorCode = ErrorConstants.ERR_IDENTIFIER_NOT_DECLARED;
+			errorParams = new ArrayList<String>();
+			errorParams.add(t.image.toUpperCase());
+			throw generateParseException();
+		}
+
+		current_id = id;
+	}
+
+	public void r22() throws ParseException {
+		if (current_id.getCategory() != SymbolTableManager.CATEGORY_FUNCTION)
+		{
+			errorCode = ErrorConstants.ERR_FUNCTION_NOT_DECLARED;
+			errorParams = new ArrayList<String>();
+			errorParams.add(current_id.getID());
+			throw generateParseException();
+		}
+	}
+
+	public void r22a() throws ParseException {
+		if (current_id.getCategory() != SymbolTableManager.CATEGORY_FUNCTION ||
+			current_id.getCategory() != SymbolTableManager.CATEGORY_PARAM ||
+			current_id.getCategory() != SymbolTableManager.CATEGORY_VAR ||
+			current_id.getCategory() != SymbolTableManager.CATEGORY_CONST)
+		{
+			errorCode = ErrorConstants.ERR_FPVC_NOT_DECLARED;
+			errorParams = new ArrayList<String>();
+			errorParams.add(current_id.getID());
+			throw generateParseException();
+		}
+	}
+
 	public void r23(){}
-	
-	public void r24(){}
-	
-	public void r25(){}
 
-	public void r25a(){}
-	
+	public void r24(int nPar) throws ParseException {
+		if (current_id.getNParameters() != nPar)		{			errorCode = ErrorConstants.ERR_N_PAR_INCOMPATICLE;
+			throw generateParseException();
+		}
+	}
+
+	public void r25() throws ParseException {
+		if (current_id.getCategory() != SymbolTableManager.CATEGORY_PROCEDURE)
+		{
+			errorCode = ErrorConstants.ERR_PROCEDURE_NOT_DECLARED;
+			errorParams = new ArrayList<String>();
+			errorParams.add(current_id.getID());
+			throw generateParseException();
+		}
+	}
+
 	public void r26(){}
-	
+
 	public int getErrorCode()
 	{
 		return errorCode;
@@ -128,34 +202,57 @@ public class JASON {
 		errorCode = 0;
 		int currentLevel = 0;
 		STManager = new SymbolTableManager();
-		
+
 		try {
 			this.Program();
 			result += "OK.\u005cn";
 		} catch (ParseException e) {
 			switch (errorCode)
 			{
-				case ErrorConstants.ERR_DUPLICATE_IDENTIFIER: 
-					errorMessage = "Identificador duplicado ("+
-					errorParams.get(0)+
-					") na linha " + e.currentToken.beginLine + ", coluna "
-					+ e.currentToken.beginColumn;
-					break;
-				case ErrorConstants.ERR_IDENTIFIER_NOT_DECLARED: 
-					errorMessage = "Identificador não declarado ("+
-					errorParams.get(0)+
-					") na linha " + e.currentToken.beginLine + ", coluna "
-					+ e.currentToken.beginColumn;
-					break;
-				case ErrorConstants.ERR_CONSTANT_NOT_DEFINED: 
-					errorMessage = "Constante não definida ("+
-					errorParams.get(0)+
-					") na linha " + e.currentToken.beginLine + ", coluna "
-					+ e.currentToken.beginColumn;
-					break;
-				default:
-					errorCode = -1;
-					errorMessage += e.getMessage() + "\u005cn";
+			case ErrorConstants.ERR_MULTIDIM_ARRAY: 
+				errorMessage = "Arrays de múltiplas dimensões não"+
+						" são permitidos, linha "+
+						e.currentToken.beginLine + ", coluna "
+						+ e.currentToken.beginColumn;
+				break;
+			case ErrorConstants.ERR_DUPLICATE_IDENTIFIER: 
+				errorMessage = "Identificador duplicado ("+
+						errorParams.get(0)+
+						") na linha " + e.currentToken.beginLine + ", coluna "
+						+ e.currentToken.beginColumn;
+				break;
+			case ErrorConstants.ERR_IDENTIFIER_NOT_DECLARED: 
+				errorMessage = "Identificador não declarado ("+
+						errorParams.get(0)+
+						") na linha " + e.currentToken.beginLine + ", coluna "
+						+ e.currentToken.beginColumn;
+				break;
+			case ErrorConstants.ERR_FUNCTION_NOT_DECLARED: 
+				errorMessage = "Identificador não declarado ("+
+						errorParams.get(0)+
+						") na linha " + e.currentToken.beginLine + ", coluna "
+						+ e.currentToken.beginColumn;
+				break;
+			case ErrorConstants.ERR_N_PAR_INCOMPATICLE: 
+				errorMessage = "Incompatibilidade no número "+
+				"de parâmetros na linha " + e.currentToken.beginLine + ", coluna "
+						+ e.currentToken.beginColumn;
+				break;
+			case ErrorConstants.ERR_FPVC_NOT_DECLARED: 
+				errorMessage = "Função, parâmetro, variável ou constante não declarada ("+
+						errorParams.get(0)+
+						") na linha " + e.currentToken.beginLine + ", coluna "
+						+ e.currentToken.beginColumn;
+				break;
+			case ErrorConstants.ERR_CONSTANT_NOT_DEFINED: 
+				errorMessage = "Constante não definida ("+
+						errorParams.get(0)+
+						") na linha " + e.currentToken.beginLine + ", coluna "
+						+ e.currentToken.beginColumn;
+				break;
+			default:
+				errorCode = -1;
+				errorMessage += e.getMessage() + "\u005cn";
 			}
 
 			ReInit(is);
@@ -169,7 +266,7 @@ public class JASON {
 			errorMessage += e.getMessage() + "\u005cn";
 		}
 
-/*
+		/*
 		Token t = null;
 		Token previousT = null;
 		Token lastStringT = null;
@@ -403,7 +500,7 @@ public class JASON {
 							errorMessage = "String na linha "+
 							t.specialToken.beginLine + ", coluna "+t.specialToken.beginColumn + " nunca foi fechada.";
 						}
-						
+
 					break outerloop;
 					case IDENTIFIER_ERR : 
 					errorCode = 1;
@@ -434,7 +531,7 @@ public class JASON {
 			}
 		}
 
-		*/
+		 */
 		return result;
 	}
 }
@@ -443,222 +540,306 @@ PARSER_END(JASON)
 
 SKIP :
 {
-  " "
-| "\r"
-| "\r\n"
-| "\t"
-| "\n"
+	" "
+	| "\r"
+	| "\r\n"
+	| "\t"
+	| "\n"
 }
 
 SPECIAL_TOKEN:
 {
-  <COMMENT_LINE: "#" (~["\n","\r","\r"])* >
-| < COMMENT_INNER : "{" >: IN_COMMENT
-| < COMMENT_BLOCK : "{" (~["}"])* "}" >
+		<COMMENT_LINE: "#" (~["\n","\r","\r"])* >
+		| < COMMENT_INNER : "{" >: IN_COMMENT
+		| < COMMENT_BLOCK : "{" (~["}"])* "}" >
 }
 
 
-< IN_COMMENT > TOKEN : {
-  < COMMENT_CORE: (~["}"])* > : DEFAULT
-}
+	< IN_COMMENT > TOKEN : {
+		< COMMENT_CORE: (~["}"])* > : DEFAULT
+	}
 
-TOKEN [IGNORE_CASE] : /* RESERVED WORDS */
-{
-  < ARRAY : "ARRAY" >
-| < BEGIN : "BEGIN" >
-| < CALL : "CALL" >
-| < DO : "DO" >
-| < ELSE : "ELSE" >
-| < END : "END" >
-| < ENDIF : "ENDIF" >
-| < ENDUNTIL : "ENDUNTIL" >
-| < ENDWHILE : "ENDWHILE" >
-| < FUNCTION : "FUNCTION" >
-| < IF : "IF" >
-| < INTEGER : "INTEGER" >
-| < PARAMETERS : "PARAMETERS" >
-| < PROCEDURE : "PROCEDURE" >
-| < RETURNS : "RETURNS" >
-| < PROGRAM : "PROGRAM" >
-| < READ : "READ" >
-| < REAL : "REAL" >
-| < RECORD : "RECORD" >
-| < RETURN : "RETURN" >
-| < SET : "SET" >
-| < STRING : "STRING" >
-| < THEN : "THEN" >
-| < TYPES : "TYPES" >
-| < UNTIL : "UNTIL" >
-| < VAR : "VAR" >
-| < VARIABLES : "VARIABLES" >
-| < WHILE : "WHILE" >
-| < WRITE : "WRITE" >
-| < BOOLEAN : "BOOLEAN" >
-| < TRUE : "TRUE" >
-| < FALSE : "FALSE" >
-| < DEFINE : "DEFINE" >
-}
+	TOKEN [IGNORE_CASE] : /* RESERVED WORDS */
+	{
+		< ARRAY : "ARRAY" >
+		| < BEGIN : "BEGIN" >
+		| < CALL : "CALL" >
+		| < DO : "DO" >
+		| < ELSE : "ELSE" >
+		| < END : "END" >
+		| < ENDIF : "ENDIF" >
+		| < ENDUNTIL : "ENDUNTIL" >
+		| < ENDWHILE : "ENDWHILE" >
+		| < FUNCTION : "FUNCTION" >
+		| < IF : "IF" >
+		| < INTEGER : "INTEGER" >
+		| < PARAMETERS : "PARAMETERS" >
+		| < PROCEDURE : "PROCEDURE" >
+		| < RETURNS : "RETURNS" >
+		| < PROGRAM : "PROGRAM" >
+		| < READ : "READ" >
+		| < REAL : "REAL" >
+		| < RECORD : "RECORD" >
+		| < RETURN : "RETURN" >
+		| < SET : "SET" >
+		| < STRING : "STRING" >
+		| < THEN : "THEN" >
+		| < TYPES : "TYPES" >
+		| < UNTIL : "UNTIL" >
+		| < VAR : "VAR" >
+		| < VARIABLES : "VARIABLES" >
+		| < WHILE : "WHILE" >
+		| < WRITE : "WRITE" >
+		| < BOOLEAN : "BOOLEAN" >
+		| < TRUE : "TRUE" >
+		| < FALSE : "FALSE" >
+		| < DEFINE : "DEFINE" >
+	}
 
-TOKEN : /* OPERATORS */
-{
-  < OP_ADD : "+" >
-| < OP_SUB : "-" >
-| < OP_MULT : "*" >
-| < OP_DIV : "/" >
-| < OP_MOD : "%" >
-| < OP_EQUALS: "=" >
-| < OP_LESS: "<" >
-| < OP_GREATER: ">" >
-| < OP_LESS_OR_EQUAL: "<=" >
-| < OP_GREATER_OR_EQUAL: ">=" >
-| < OP_DIFFERENT: "!" >
-}
+	TOKEN : /* OPERATORS */
+	{
+		< OP_ADD : "+" >
+		| < OP_SUB : "-" >
+		| < OP_MULT : "*" >
+		| < OP_DIV : "/" >
+		| < OP_MOD : "%" >
+		| < OP_EQUALS: "=" >
+		| < OP_LESS: "<" >
+		| < OP_GREATER: ">" >
+		| < OP_LESS_OR_EQUAL: "<=" >
+		| < OP_GREATER_OR_EQUAL: ">=" >
+		| < OP_DIFFERENT: "!" >
+	}
 
-TOKEN : /* SYMBOLS */
-{
-  < BRACKET_OPEN : "[" >
-| < BRACKET_CLOSE : "]" >
-| < PARETHESIS_OPEN : "(" >
-| < PARETHESIS_CLOSE: ")" >
-| < COMMA : "," >
-| < DOT : "." >
-| < SEMICOLON  : ";" >
-| < AND : "&" >
-| < OR : "\\" >
-| < NOT : "~" >
-}
+	TOKEN : /* SYMBOLS */
+	{
+		< BRACKET_OPEN : "[" >
+		| < BRACKET_CLOSE : "]" >
+		| < PARETHESIS_OPEN : "(" >
+		| < PARETHESIS_CLOSE: ")" >
+		| < COMMA : "," >
+		| < DOT : "." >
+		| < SEMICOLON  : ";" >
+		| < AND : "&" >
+		| < OR : "\\" >
+		| < NOT : "~" >
+	}
 
-TOKEN :
-{
-  < INTEGER_CONST : (< DIGIT >)+ >
-| < REAL_CONST : (< DIGIT >)+"."(< DIGIT >)* | "."(< DIGIT >)+ >
-| < #DIGIT : [ "0"-"9" ] >
-}
+	TOKEN :
+	{
+		< INTEGER_CONST : (< DIGIT >)+ >
+		| < REAL_CONST : (< DIGIT >)+"."(< DIGIT >)* | "."(< DIGIT >)+ >
+		| < #DIGIT : [ "0"-"9" ] >
+	}
 
-TOKEN [IGNORE_CASE]:
-{
-  < IDENTIFIER : [ "a"-"z", "_" ]([ "a"-"z" , "0"-"9", "_"]){0,62} >
-  | < IDENTIFIER_ERR : [ "a"-"z", "_" ]([ "a"-"z" , "0"-"9", "_"]){63,} >
-}
+	TOKEN [IGNORE_CASE]:
+	{
+		< IDENTIFIER : [ "a"-"z", "_" ]([ "a"-"z" , "0"-"9", "_"]){0,62} >
+		| < IDENTIFIER_ERR : [ "a"-"z", "_" ]([ "a"-"z" , "0"-"9", "_"]){63,} >
+	}
 
-SPECIAL_TOKEN:
-{
-  < STRING_START : "\"" >: IN_STRING
-}
+	SPECIAL_TOKEN:
+	{
+		< STRING_START : "\"" >: IN_STRING
+	}
 
-< IN_STRING > TOKEN :
-{
-  < STRING_CORE:  (~["\""])* > : DEFAULT 
-}
+	< IN_STRING > TOKEN :
+	{
+		< STRING_CORE:  (~["\""])* > : DEFAULT 
+	}
 
-TOKEN [IGNORE_CASE]:
-{
-  < STRING_CONST : "\"" (~["\""])*  "\"" > 
-}
-
-
-void Program(): {} { Header() DeclSec() Block() <DOT> }
-void Header(): {} { <PROGRAM> <IDENTIFIER> <SEMICOLON> }
-void Block(): {} { <BEGIN> Statements() <END> }
+	TOKEN [IGNORE_CASE]:
+	{
+		< STRING_CONST : "\"" (~["\""])*  "\"" > 
+	}
 
 
+	void Program(): {} { Header() DeclSec() Block() <DOT> }
+	void Header(): {} { <PROGRAM> <IDENTIFIER> <SEMICOLON> }
+	void Block(): {} { <BEGIN> Statements() <END> }
 
 
 
-//Declarações
 
-void DeclSec(): {} { 
-	(DefineDeclSec())? (TypeDeclSec())? (VarDeclSec())? (SubProgramDecls())? 
-}
 
-void DefineDeclSec():
+	//Declarações
+
+	void DeclSec(): {} { 
+		(DefineDeclSec())? (TypeDeclSec())? (VarDeclSec())? (SubProgramDecls())? 
+	}
+
+	void DefineDeclSec():
 	{
 		Token t;
 		int type[] = new int[1];
 		String value[] = new String[1];
 	} { 
-	<DEFINE> ( t = <IDENTIFIER> { Identifier id = r0(t);}
-	<OP_EQUALS> Values(id, type,value)
-	<SEMICOLON> {r0a(id,SymbolTableManager.CATEGORY_CONST,type[0],value[0]);})+ 
-}
-
-String Values(Identifier id, int type[], String value[]): {Token t1 = null; Token t2;} {
-	( ( t1 = <OP_SUB> )?
-	(  t2 = <INTEGER_CONST> {type[0]=JASONConstants.INTEGER;value[0]=t2.image;}
-	 | t2 = <REAL_CONST>    {type[0]=JASONConstants.REAL;value[0]=t2.image;})
-	 | t2 = <STRING_CONST>  {type[0]=JASONConstants.STRING;value[0]=t2.image;})
-	{
-		String s = "";
-		if (t1 != null)
-			s = s+t1.image.toUpperCase();
-		s = s+t2.image.toUpperCase();
-		return s;
+		<DEFINE> ( t = <IDENTIFIER> { Identifier id = r0(t);}
+		<OP_EQUALS> Values(id, type,value)
+		<SEMICOLON> {r0a(id,SymbolTableManager.CATEGORY_CONST,type[0],value[0]);})+ 
 	}
-}
 
-void TypeDeclSec(): {} { 
-	<TYPES> ( <IDENTIFIER> {r1();} ( ArraySpecification() {r2();} | RecordSpecification() {r2a();}) <SEMICOLON> )+ 
-}
-
-void ArraySpecification(): {} { 
-	<ARRAY> {r10();} DataType() <BRACKET_OPEN> (<INTEGER_CONST> | <REAL_CONST>) {r12();} <BRACKET_CLOSE> 
-}
-
-void RecordSpecification(): {} { 
-	<RECORD> {r10a();} VarDeclsRecord() <END>
-}
-
-void VarDeclsRecord(): {int dt;} {
-	( dt = DataType() {r4a();} IdList(dt) {r3();} <SEMICOLON> )+
-}
-
-void VarDeclSec(): {} { 
-	<VARIABLES> VarDecls() 
-}
-
-void VarDecls(): {int dt;} {
-	( dt = DataType() {r4();} IdList(dt) {r3();} <SEMICOLON> )+
-}
-
-int DataType(): {Token t;} {
-	( t = <REAL> | t = <INTEGER> |
-	  t = <IDENTIFIER> | t = <STRING> | t = <BOOLEAN> )
-	{
-		return t.kind;
+	String Values(Identifier id, int type[], String value[]): {Token t1 = null; Token t2;} {
+		( ( t1 = <OP_SUB> )?
+				(  t2 = <INTEGER_CONST> {type[0]=JASONConstants.INTEGER;value[0]=t2.image;}
+				| t2 = <REAL_CONST>    {type[0]=JASONConstants.REAL;value[0]=t2.image;})
+				| t2 = <STRING_CONST>  {type[0]=JASONConstants.STRING;value[0]=t2.image;})
+		{
+			String s = "";
+			if (t1 != null)
+				s = s+t1.image.toUpperCase();
+			s = s+t2.image.toUpperCase();
+			return s;
+		}
 	}
-}
 
-void IdList(int dt): {ArrayList<Identifier> idList; Token t;} {
-	{
-		idList = new ArrayList<Identifier>();
+	void TypeDeclSec(): {} { 
+		<TYPES> ( <IDENTIFIER> {r1();} ( ArraySpecification() {r2();} | RecordSpecification() {r2a();}) <SEMICOLON> )+ 
 	}
-	t = <IDENTIFIER>
-	{
-		Identifier id = new Identifier();
-		id.setID(t.image.toUpperCase());
-		id.setLevel(currentLevel);
-		id.setType(dt);
-		id.setCategory(SymbolTableManager.CATEGORY_VAR);
-		idList.add(id);
+
+	void ArraySpecification(): {} { 
+		<ARRAY> {r10();} DataType() <BRACKET_OPEN> <INTEGER_CONST> {r12();} <BRACKET_CLOSE> 
 	}
-	( <COMMA> t = <IDENTIFIER>
-	{
-		id = new Identifier();
-		id.setID(t.image.toUpperCase());
-		id.setLevel(currentLevel);
-		id.setType(dt);
-		id.setCategory(SymbolTableManager.CATEGORY_VAR);
-		idList.add(id);
+
+	void RecordSpecification(): {} { 
+		<RECORD> {r10a();} VarDeclsRecord() <END>
 	}
-	)*
-	{
-		for (Identifier identifier : idList) {
-			if (STManager.addSymbol(identifier))
+
+	void VarDeclsRecord(): {int dt;} {
+		( dt = DataType() {r4a();} IdListRecord(dt) /*{r3record?();}*/ <SEMICOLON> )+
+	}
+
+	void VarDeclSec(): {} { 
+		<VARIABLES> VarDecls() 
+	}
+
+	void VarDecls(): {int dt;} {
+		( dt = DataType() IdList(dt) <SEMICOLON> )+
+	}
+
+	int DataType(): {Token t;} {
+		( t = <REAL> | t = <INTEGER> |
+				t = <IDENTIFIER> | t = <STRING> | t = <BOOLEAN> )
+		{
+			return t.kind;
+		}
+	}
+
+	void IdList(int dt): {Token t;} {
+		t = <IDENTIFIER>
+		{r3(t,dt);}
+		( <COMMA> t = <IDENTIFIER>
+		{r3(t,dt);}
+				)*
+	}
+
+	void IdListRecord(int dt): {Token t;} {
+		t = <IDENTIFIER>
+		//	{r3(t,dt);}
+		( <COMMA> t = <IDENTIFIER>
+		//	{r3(t,dt);}
+				)*
+	}
+
+	void SubProgramDecls(): {} { 
+		( ProcDecl() | FunctionDecl() )+ 
+	}
+
+	void ProcDecl(): {} {
+		ProcHeader()
+		{
+			currentLevel++;
+		}
+		SubProgramDeclSec() Block() {r8();}
+		{
+			STManager.removeLevel(currentLevel);
+			currentLevel--;
+		}
+		<SEMICOLON>
+	}
+
+	void ProcHeader(): {Token t;} {
+		<PROCEDURE> t = <IDENTIFIER> { r5(t); r13(); }
+		<SEMICOLON>
+	}
+
+	void SubProgramDeclSec(): {} {
+		(ParamDeclSec())? DeclSec() 
+	}
+
+	void ParamDeclSec(): {int dt;Token t;Token tTransf = null;} {
+		{
+			ArrayList<Identifier> idList = new ArrayList<Identifier>();
+			Identifier id;
+		}
+		<PARAMETERS> ( {r14();} (tTransf = <VAR> {r15();})?
+				dt = DataType() {r19();}
+		t = <IDENTIFIER> {r18();}
+		{
+			id = new Identifier();
+			id.setID(t.image.toUpperCase());
+			id.setLevel(currentLevel);
+			id.setType(dt);
+			id.setCategory(SymbolTableManager.CATEGORY_PARAM);
+			if (tTransf==null) {
+				id.setTransferType(SymbolTableManager.TRANSFER_VALUE);
+			}
+			else {
+				id.setTransferType(SymbolTableManager.TRANSFER_REF);
+			}
+			idList.add(id);
+		}
+		<SEMICOLON> )+ {r20();}
+		{
+			for (Identifier identifier : idList) {
+				if (STManager.addSymbol(identifier))
+				{
+					result += "ID:"+identifier.getID()+"\n";
+					result += "Tipo:"+identifier.getTypeName()+"\n";
+					result += "Nível:"+currentLevel+"\n";
+					result += "Categoria:"+identifier.getCategoryName()+"\n";
+					result += "Transferência:"+identifier.getTransferTypeName()+"\n";
+					result += "----------------------"+"\n";
+				}
+				else
+				{
+					errorCode = ErrorConstants.ERR_DUPLICATE_IDENTIFIER;
+					errorParams = new ArrayList<String>();
+					errorParams.add(id.getID());
+					throw generateParseException();
+				}
+			}
+		}
+	} 
+
+	void FunctionDecl(): {} {
+		FunctionHeader()
+		{
+			currentLevel++;
+		}
+		SubProgramDeclSec() FunctionBlock() {r8();}
+		{
+			STManager.removeLevel(currentLevel);
+			currentLevel--;
+		}
+		<SEMICOLON>
+	}
+
+	void FunctionHeader(): {Token t;int dt;} {
+		<FUNCTION> t = <IDENTIFIER> {r6(); r13();}
+		<RETURNS> dt = DataType() {r7();}
+		{
+			Identifier id = new Identifier();
+			id.setID(t.image.toUpperCase());
+			id.setLevel(currentLevel);
+			id.setType(dt);
+			id.setCategory(SymbolTableManager.CATEGORY_FUNCTION);
+			if (STManager.addSymbol(id))
 			{
-				result += "ID:"+identifier.getID()+"\n";
-				result += "Tipo:"+identifier.getTypeName()+"\n";
-				result += "Nível:"+currentLevel+"\n";
-				result += "Categoria:"+identifier.getCategoryName()+"\n";
+				result += "ID:"+id.getID()+"\n";
+				result += "Nível:"+id.getLevel()+"\n";
+				result += "Categoria:"+id.getCategoryName()+"\n";
+				result += "Retorno:"+id.getTypeName()+"\n";
 				result += "----------------------"+"\n";
 			}
 			else
@@ -669,253 +850,102 @@ void IdList(int dt): {ArrayList<Identifier> idList; Token t;} {
 				throw generateParseException();
 			}
 		}
+		<SEMICOLON>
 	}
-}
+	void FunctionBlock(): {} { <BEGIN> ( Statement() <SEMICOLON> )+  <RETURN> <PARETHESIS_OPEN> Condition() <PARETHESIS_CLOSE> <END> }
 
-void SubProgramDecls(): {} { 
-	( ProcDecl() | FunctionDecl() )+ 
-}
+	//Comandos
 
-void ProcDecl(): {} {
-	ProcHeader() {r5(); r13();}
-	{
-		currentLevel++;
+	void Statements(): {} { Statement() ( <SEMICOLON> Statement() )* }
+	void Statement(): {Token t;} { 
+		( <READ> Variable() 
+		| <SET> Variable() <OP_EQUALS> Expression()
+		| <WRITE> Variable() 
+		| <IF> Condition() <THEN> Statements() ElseClause() 
+		| <WHILE> Condition() <DO> Statements() <ENDWHILE> | <UNTIL> Condition() <DO> Statements() <ENDUNTIL> 
+		| <CALL> t = <IDENTIFIER> { r21(t); r25(); } ArgList()
+		  )
 	}
-	SubProgramDeclSec() Block() {r8();}
-	{
-		STManager.removeLevel(currentLevel);
-		currentLevel--;
-	}
-	<SEMICOLON>
-}
 
-void ProcHeader(): {Token t;} {
-	<PROCEDURE> t = <IDENTIFIER>
+	void ElseClause(): {} {
+		( <ELSE> Statements() )? <ENDIF> 
+	}
+
+	void ArgList(): {Token t = null; int nPar;} {
+		( t = <PARETHESIS_OPEN> nPar = Arguments() <PARETHESIS_CLOSE>  {r24(nPar);} )?
+	}
+
+	int Arguments(): {int nArg = 1;} {
+		Condition() (<COMMA> Condition() {nArg++;})*
+		{ return nArg; }
+	}
+
+
+	//Expressões
+	void Condition(): {} { 
+		CompoundCondition() ( <OR> CompoundCondition() )* 
+	}
+
+	void CompoundCondition(): {} { 
+		SimpleCondition() ( <AND> SimpleCondition() )* 
+	}
+
+	void SimpleCondition(): {} { 
+		Expression() (RelOp() Expression())? 
+	}
+
+	void Expression(): {} { 
+		Term() ( AddOp() Term() )* 
+	}
+
+	void Term(): {} { 
+		Unary() ( MultOp() Unary() )* 
+	}
+
+	void Unary(): {} { 
+		( ( <OP_ADD> | <OP_SUB> ) )? Factor() 
+	}
+
+	void Factor(): {Token t;int nPar;} {
+		Bool() |
+		t = <IDENTIFIER> {r21(t); r22a();}
+		( <PARETHESIS_OPEN> {r22();} nPar =  Arguments() {r24(nPar);} <PARETHESIS_CLOSE> )? VariableAux() 
+		| (<INTEGER_CONST> | <REAL_CONST>) {r26();}
+		| <STRING_CONST> 
+		| <NOT> Factor() 
+		| <PARETHESIS_OPEN> Condition() <PARETHESIS_CLOSE>
+	}
+
+	void Bool(): {} { 
+		( <TRUE> | <FALSE> ) 
+	}
+
+	void Variable(): {Token t;} {
+		t = <IDENTIFIER> {r21(t);}
+		VariableAux()
+	}
+
+	void VariableAux(): {Token t;} {
+		( <DOT> t = <IDENTIFIER> {r21(t);}
+		| <BRACKET_OPEN>  Expression() <BRACKET_CLOSE> )*
+	}
+	void RelOp(): {} { ( <OP_EQUALS> | <OP_DIFFERENT> | <OP_GREATER_OR_EQUAL> | <OP_LESS_OR_EQUAL> | <OP_LESS> | <OP_GREATER> ) }
+	void AddOp(): {} { ( <OP_ADD> | <OP_SUB> ) }
+	void MultOp(): {} { ( <OP_MULT> | <OP_DIV> | <OP_MOD> ) }
+	void Argument(): {} { Condition() }
+
+	TOKEN_MGR_DECLS :
 	{
-		Identifier id = new Identifier();
-		id.setID(t.image.toUpperCase());
-		id.setLevel(currentLevel);
-		id.setCategory(SymbolTableManager.CATEGORY_PROCEDURE);
-		if (STManager.addSymbol(id))
+		public void CommonTokenAction(Token t)
 		{
-			result += "ID:"+id.getID()+"\n";
-			result += "Nível:"+id.getLevel()+"\n";
-			result += "Categoria:"+id.getCategoryName()+"\n";
-			result += "----------------------"+"\n";
+			t.absoluteBeginColumn = getCurrentTokenAbsolutePosition();
+			t.absoluteEndColumn = t.absoluteBeginColumn + t.image.length();
 		}
-		else
+
+		public int getCurrentTokenAbsolutePosition()
 		{
-			errorCode = ErrorConstants.ERR_DUPLICATE_IDENTIFIER;
-			errorParams = new ArrayList<String>();
-			errorParams.add(id.getID());
-			throw generateParseException();
+			if (input_stream instanceof SimpleCharStream)
+				return ((SimpleCharStream)input_stream).getAbsoluteTokenBengin();
+			return -1;
 		}
 	}
-	<SEMICOLON>
-}
-
-void SubProgramDeclSec(): {} {
-	(ParamDeclSec())? DeclSec() 
-}
-
-void ParamDeclSec(): {int dt;Token t;Token tTransf = null;} {
-	{
-		ArrayList<Identifier> idList = new ArrayList<Identifier>();
-		Identifier id;
-	}
-	<PARAMETERS> ( {r14();} (tTransf = <VAR> {r15();})?
-	dt = DataType() {r19();}
-	t = <IDENTIFIER> {r18();}
-	{
-		id = new Identifier();
-		id.setID(t.image.toUpperCase());
-		id.setLevel(currentLevel);
-		id.setType(dt);
-		id.setCategory(SymbolTableManager.CATEGORY_PARAM);
-		if (tTransf==null) {
-			id.setTransferType(SymbolTableManager.TRANSFER_VALUE);
-		}
-		else {
-			id.setTransferType(SymbolTableManager.TRANSFER_REF);
-		}
-		idList.add(id);
-	}
-	<SEMICOLON> )+ {r20();}
-	{
-		for (Identifier identifier : idList) {
-			if (STManager.addSymbol(identifier))
-			{
-				result += "ID:"+identifier.getID()+"\n";
-				result += "Tipo:"+identifier.getTypeName()+"\n";
-				result += "Nível:"+currentLevel+"\n";
-				result += "Categoria:"+identifier.getCategoryName()+"\n";
-				result += "Transferência:"+identifier.getTransferTypeName()+"\n";
-				result += "----------------------"+"\n";
-			}
-			else
-			{
-				errorCode = ErrorConstants.ERR_DUPLICATE_IDENTIFIER;
-				errorParams = new ArrayList<String>();
-				errorParams.add(id.getID());
-				throw generateParseException();
-			}
-		}
-	}
-} 
-
-void FunctionDecl(): {} {
-	FunctionHeader()
-	{
-		currentLevel++;
-	}
-	SubProgramDeclSec() FunctionBlock() {r8();}
-	{
-		STManager.removeLevel(currentLevel);
-		currentLevel--;
-	}
-	<SEMICOLON>
-}
-
-void FunctionHeader(): {Token t;int dt;} {
-	<FUNCTION> t = <IDENTIFIER> {r6(); r13();}
-	<RETURNS> dt = DataType() {r7();}
-	{
-		Identifier id = new Identifier();
-		id.setID(t.image.toUpperCase());
-		id.setLevel(currentLevel);
-		id.setType(dt);
-		id.setCategory(SymbolTableManager.CATEGORY_FUNCTION);
-		if (STManager.addSymbol(id))
-		{
-			result += "ID:"+id.getID()+"\n";
-			result += "Nível:"+id.getLevel()+"\n";
-			result += "Categoria:"+id.getCategoryName()+"\n";
-			result += "Retorno:"+id.getTypeName()+"\n";
-			result += "----------------------"+"\n";
-		}
-		else
-		{
-			errorCode = ErrorConstants.ERR_DUPLICATE_IDENTIFIER;
-			errorParams = new ArrayList<String>();
-			errorParams.add(id.getID());
-			throw generateParseException();
-		}
-	}
-	<SEMICOLON>
-}
-void FunctionBlock(): {} { <BEGIN> ( Statement() <SEMICOLON> )+  <RETURN> <PARETHESIS_OPEN> Condition() <PARETHESIS_CLOSE> <END> }
-
-//Comandos
-
-void Statements(): {} { Statement() ( <SEMICOLON> Statement() )* }
-void Statement(): {} { 
-	( <READ> Variable() {r21();} 
-	| <SET> Variable() {r25();} <OP_EQUALS> Expression() {r22a();}
-	| <WRITE> Variable() 
-	| <IF> Condition() <THEN> Statements() ElseClause() 
-	| <WHILE> Condition() <DO> Statements() <ENDWHILE> | <UNTIL> Condition() <DO> Statements() <ENDUNTIL> 
-	| <CALL> <IDENTIFIER> {r21(); r25a();} ArgList() )
-}
-
-void ElseClause(): {} {
-	( <ELSE> Statements() )? <ENDIF> 
-}
-
-void ArgList(): {} {
-	(  {/* ou de alguma forma */r25();}  <PARETHESIS_OPEN> Arguments() <PARETHESIS_CLOSE>  {r24();} )? 
-}
-
-void Arguments(): {} {
-	Condition() {r23();} (<COMMA> Condition() {r23();})* 
-}
-
-
-//Expressões
-void Condition(): {} { 
-	CompoundCondition() ( <OR> CompoundCondition() )* 
-}
-
-void CompoundCondition(): {} { 
-	SimpleCondition() ( <AND> SimpleCondition() )* 
-}
-
-void SimpleCondition(): {} { 
-	Expression() (RelOp() Expression())? 
-}
-
-void Expression(): {} { 
-	Term() ( AddOp() Term() )* 
-}
-
-void Term(): {} { 
-	Unary() ( MultOp() Unary() )* 
-}
-
-void Unary(): {} { 
-	( ( <OP_ADD> | <OP_SUB> ) )? Factor() 
-}
-
-void Factor(): {Token t;} {
-	Bool() |
-	t = <IDENTIFIER> {r21(); r22a();}
-	{
-		Identifier id = STManager.getIdentifier(t.image);
-		if (id==null)
-		{
-			errorCode = ErrorConstants.ERR_IDENTIFIER_NOT_DECLARED;
-			errorParams = new ArrayList<String>();
-			errorParams.add(t.image.toUpperCase());
-			throw generateParseException();
-		}
-	}
-	( <PARETHESIS_OPEN> {/* fazer ou de alguma forma */r22a();} Arguments() {r24();} <PARETHESIS_CLOSE> )? VariableAux() 
-	| (<INTEGER_CONST> | <REAL_CONST>) {r26();}
-	| <STRING_CONST> 
-	| <NOT> Factor() 
-	| <PARETHESIS_OPEN> Condition() <PARETHESIS_CLOSE>
-}
-
-void Bool(): {} { 
-	( <TRUE> | <FALSE> ) 
-}
-
-void Variable(): {Token t;} {
-	t = <IDENTIFIER> {r21();}
-	{
-		Identifier id = STManager.getIdentifier(t.image);
-		if (id==null)
-		{
-			errorCode = ErrorConstants.ERR_IDENTIFIER_NOT_DECLARED;
-			errorParams = new ArrayList<String>();
-			errorParams.add(t.image.toUpperCase());
-			throw generateParseException();
-		}
-	}
-	VariableAux()
-}
-
-void VariableAux(): {Token t;} {
-	( <DOT> t = <IDENTIFIER> {r21();}
-	// TODO
-	| <BRACKET_OPEN>  Expression() <BRACKET_CLOSE> )*
-}
-void RelOp(): {} { ( <OP_EQUALS> | <OP_DIFFERENT> | <OP_GREATER_OR_EQUAL> | <OP_LESS_OR_EQUAL> | <OP_LESS> | <OP_GREATER> ) }
-void AddOp(): {} { ( <OP_ADD> | <OP_SUB> ) }
-void MultOp(): {} { ( <OP_MULT> | <OP_DIV> | <OP_MOD> ) }
-void Argument(): {} { Condition() }
-
-TOKEN_MGR_DECLS :
-{
-	public void CommonTokenAction(Token t)
-	{
-		t.absoluteBeginColumn = getCurrentTokenAbsolutePosition();
-		t.absoluteEndColumn = t.absoluteBeginColumn + t.image.length();
-	}
-
-	public int getCurrentTokenAbsolutePosition()
-	{
-		if (input_stream instanceof SimpleCharStream)
-			return ((SimpleCharStream)input_stream).getAbsoluteTokenBengin();
-		return -1;
-	}
-}
