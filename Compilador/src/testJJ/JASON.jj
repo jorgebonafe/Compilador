@@ -24,11 +24,14 @@ public class JASON {
 	int currentLevel;
 	SymbolTableManager STManager;
 	ArrayList<String> errorParams;
+	ArrayList<Token> errorTokenParams;
 	HashMap<String,String> definitions;
 	int offset = 0;
-	boolean permissao_tipo_array = false;
 
 	Identifier current_id = null;
+	Identifier proc_id = null;
+	boolean permissao_tipo_array = false;
+	int classe_t;
 
 	public Identifier r0(Token t) throws ParseException {
 		Identifier id = new Identifier();
@@ -44,20 +47,32 @@ public class JASON {
 		return id;
 	}
 
-	public void r0a(Identifier id, int cat, int type, String value) {
+	public void r0a(Identifier id, int cat, Identifier type, String value) {
 		id.setCategory(cat);
 		id.setType(type);		id.setValue(value);
 	}
 
-	public void r1() {
-		//		1: Se declarado(TS,s,nivelcorr) então erro(‘id já declarado’);		//		insere(TS, s, ref);		permissao_tipo_array = true;
+	public Identifier r1(Token t) throws ParseException {
+		Identifier id = new Identifier();
+		id.setID(t.image.toUpperCase());
+		id.setLevel(currentLevel);
+
+		if (!STManager.addSymbol(id)) {
+			errorCode = ErrorConstants.ERR_DUPLICATE_IDENTIFIER;
+			errorParams = new ArrayList<String>();
+			errorParams.add(id.getID());
+			throw generateParseException();
+		}
+		permissao_tipo_array = true;
+
+		return id;
 	}
 
 	public void r2(){}
 
 	public void r2a(){}
 
-	public void r3(Token t, int type) throws ParseException {
+	public void r3(Token t, Identifier type) throws ParseException {
 		Identifier id = new Identifier();
 		id.setID(t.image.toUpperCase());
 		id.setLevel(currentLevel);
@@ -77,7 +92,7 @@ public class JASON {
 
 	public void r4a(){}
 
-	public void r5(Token t) throws ParseException {
+	public Identifier r5(Token t) throws ParseException {
 		Identifier id = new Identifier();
 		id.setID(t.image.toUpperCase());
 		id.setLevel(currentLevel);
@@ -88,11 +103,35 @@ public class JASON {
 			errorParams.add(id.getID());
 			throw generateParseException();
 		}
+		return id;
 	}
 
-	public void r6(){}
+	public Identifier r6(Token t) throws ParseException {
+		Identifier id = new Identifier();
+		id.setID(t.image.toUpperCase());
+		id.setLevel(currentLevel);
+		id.setCategory(SymbolTableManager.CATEGORY_FUNCTION);
+		if (!STManager.addSymbol(id)) {
+			errorCode = ErrorConstants.ERR_DUPLICATE_IDENTIFIER;
+			errorParams = new ArrayList<String>();
+			errorParams.add(id.getID());
+			throw generateParseException();
+		}
+		return id;
+	}
 
 	public void r7(){}
+
+	public Identifier r7a(Token t) throws ParseException {
+		Identifier id = STManager.getIdentifier(t.image);
+		if (id.getCategory() != SymbolTableManager.CATEGORY_TYPE) {
+			errorCode = ErrorConstants.ERR_TYPE_NOT_DECLARED;
+			errorParams = new ArrayList<String>();
+			errorParams.add(id.getID());
+			throw generateParseException();
+		}
+		return id;
+	}
 
 	public void r8(){}
 
@@ -100,7 +139,9 @@ public class JASON {
 
 	public void r10() throws ParseException {
 		if (permissao_tipo_array) {
-			//TODO		}
+			//TODO
+
+			permissao_tipo_array = false;		}
 		else {
 			errorCode = ErrorConstants.ERR_MULTIDIM_ARRAY;
 			throw generateParseException();		}
@@ -108,18 +149,29 @@ public class JASON {
 
 	public void r10a(){}
 
-	public void r11(){}
-
-	public void r12(){}
-
-	public void r13() {
-		permissao_tipo_array = true;
-		//pos := ref; //guarda a entrada de procedimento ou função
+	public void r12(Identifier id, Token t, Identifier dt) throws ParseException {
+		int size = new Integer(t.image);
+		if (size<=0) {
+			errorCode = ErrorConstants.ERR_NEGATIVE_ARRAY;
+			errorTokenParams = new ArrayList<Token>();
+			errorTokenParams.add(t);
+			throw generateParseException();		}
+		id.setArraySize(new Integer(t.image));
+		id.setNBytes(dt.getNBytes()*id.getArraySize());
 	}
 
-	public void r14(){}
+	public void r13(Identifier id) {
+		permissao_tipo_array = true;
+		proc_id = id;
+	}
 
-	public void r15(){}
+	public void r14() {
+		classe_t = SymbolTableManager.TRANSFER_VALUE;
+	}
+
+	public void r15() {
+		classe_t = SymbolTableManager.TRANSFER_REF;
+	}
 
 	public void r16(){}
 
@@ -233,6 +285,12 @@ public class JASON {
 						") na linha " + e.currentToken.beginLine + ", coluna "
 						+ e.currentToken.beginColumn;
 				break;
+			case ErrorConstants.ERR_TYPE_NOT_DECLARED: 
+				errorMessage = "Tipo não declarado ("+
+						errorParams.get(0)+
+						") na linha " + e.currentToken.beginLine + ", coluna "
+						+ e.currentToken.beginColumn;
+				break;
 			case ErrorConstants.ERR_N_PAR_INCOMPATICLE: 
 				errorMessage = "Incompatibilidade no número "+
 				"de parâmetros na linha " + e.currentToken.beginLine + ", coluna "
@@ -249,6 +307,12 @@ public class JASON {
 						errorParams.get(0)+
 						") na linha " + e.currentToken.beginLine + ", coluna "
 						+ e.currentToken.beginColumn;
+				break;
+			case ErrorConstants.ERR_NEGATIVE_ARRAY: 
+				errorMessage = "Array de tamanho não positivo "+
+					") na linha " +
+					errorTokenParams.get(0).beginLine + ", coluna "+
+					errorTokenParams.get(0).beginColumn;
 				break;
 			default:
 				errorCode = -1;
@@ -671,7 +735,7 @@ SPECIAL_TOKEN:
 	void DefineDeclSec():
 	{
 		Token t;
-		int type[] = new int[1];
+		Identifier type[] = new Identifier[1];
 		String value[] = new String[1];
 	} { 
 		<DEFINE> ( t = <IDENTIFIER> { Identifier id = r0(t);}
@@ -679,11 +743,14 @@ SPECIAL_TOKEN:
 		<SEMICOLON> {r0a(id,SymbolTableManager.CATEGORY_CONST,type[0],value[0]);})+ 
 	}
 
-	String Values(Identifier id, int type[], String value[]): {Token t1 = null; Token t2;} {
+	String Values(Identifier id, Identifier type[], String value[]): {Token t1 = null; Token t2;} {
 		( ( t1 = <OP_SUB> )?
-				(  t2 = <INTEGER_CONST> {type[0]=JASONConstants.INTEGER;value[0]=t2.image;}
-				| t2 = <REAL_CONST>    {type[0]=JASONConstants.REAL;value[0]=t2.image;})
-				| t2 = <STRING_CONST>  {type[0]=JASONConstants.STRING;value[0]=t2.image;})
+				(  t2 = <INTEGER_CONST>
+				{type[0] = STManager.getTypeInteger();value[0]=t2.image;}
+				| t2 = <REAL_CONST>
+				{type[0] = STManager.getTypeReal();value[0]=t2.image;})
+				| t2 = <STRING_CONST>
+				{type[0] = STManager.getTypeString();value[0]=t2.image;})
 		{
 			String s = "";
 			if (t1 != null)
@@ -693,19 +760,21 @@ SPECIAL_TOKEN:
 		}
 	}
 
-	void TypeDeclSec(): {} { 
-		<TYPES> ( <IDENTIFIER> {r1();} ( ArraySpecification() {r2();} | RecordSpecification() {r2a();}) <SEMICOLON> )+ 
+	void TypeDeclSec(): {Token t; Identifier id;} { 
+		<TYPES> ( t = <IDENTIFIER> {id = r1(t);} ( ArraySpecification(id) {r2();} | RecordSpecification() {r2a();}) <SEMICOLON> )+ 
 	}
 
-	void ArraySpecification(): {} { 
-		<ARRAY> {r10();} DataType() <BRACKET_OPEN> <INTEGER_CONST> {r12();} <BRACKET_CLOSE> 
+	void ArraySpecification(Identifier id): {Identifier dt;Token t;} { 
+		<ARRAY> {r10();}
+		dt = DataType() <BRACKET_OPEN> t = <INTEGER_CONST>
+		{r12(id,t,dt);} <BRACKET_CLOSE> 
 	}
 
 	void RecordSpecification(): {} { 
 		<RECORD> {r10a();} VarDeclsRecord() <END>
 	}
 
-	void VarDeclsRecord(): {int dt;} {
+	void VarDeclsRecord(): {Identifier dt;} {
 		( dt = DataType() {r4a();} IdListRecord(dt) /*{r3record?();}*/ <SEMICOLON> )+
 	}
 
@@ -713,19 +782,23 @@ SPECIAL_TOKEN:
 		<VARIABLES> VarDecls() 
 	}
 
-	void VarDecls(): {int dt;} {
+	void VarDecls(): {Identifier dt;} {
 		( dt = DataType() IdList(dt) <SEMICOLON> )+
 	}
 
-	int DataType(): {Token t;} {
-		( t = <REAL> | t = <INTEGER> |
-				t = <IDENTIFIER> | t = <STRING> | t = <BOOLEAN> )
+	Identifier DataType(): {Token t; Identifier id;} {
+		(
+			t = <REAL> {id = STManager.getTypeReal(); } |
+			t = <INTEGER> {id = STManager.getTypeInteger(); } |
+			t = <IDENTIFIER> { id = r7a(t); } |
+			t = <STRING> {id = STManager.getTypeString(); } |
+			t = <BOOLEAN> {id = STManager.getTypeBoolean(); } )
 		{
-			return t.kind;
+			return id;
 		}
 	}
 
-	void IdList(int dt): {Token t;} {
+	void IdList(Identifier dt): {Token t;} {
 		t = <IDENTIFIER>
 		{r3(t,dt);}
 		( <COMMA> t = <IDENTIFIER>
@@ -733,7 +806,7 @@ SPECIAL_TOKEN:
 				)*
 	}
 
-	void IdListRecord(int dt): {Token t;} {
+	void IdListRecord(Identifier dt): {Token t;} {
 		t = <IDENTIFIER>
 		//	{r3(t,dt);}
 		( <COMMA> t = <IDENTIFIER>
@@ -759,7 +832,7 @@ SPECIAL_TOKEN:
 	}
 
 	void ProcHeader(): {Token t;} {
-		<PROCEDURE> t = <IDENTIFIER> { r5(t); r13(); }
+		<PROCEDURE> t = <IDENTIFIER> { Identifier id = r5(t); r13(id); }
 		<SEMICOLON>
 	}
 
@@ -767,7 +840,7 @@ SPECIAL_TOKEN:
 		(ParamDeclSec())? DeclSec() 
 	}
 
-	void ParamDeclSec(): {int dt;Token t;Token tTransf = null;} {
+	void ParamDeclSec(): {Identifier dt;Token t;Token tTransf = null;} {
 		{
 			ArrayList<Identifier> idList = new ArrayList<Identifier>();
 			Identifier id;
@@ -792,16 +865,7 @@ SPECIAL_TOKEN:
 		<SEMICOLON> )+ {r20();}
 		{
 			for (Identifier identifier : idList) {
-				if (STManager.addSymbol(identifier))
-				{
-					result += "ID:"+identifier.getID()+"\n";
-					result += "Tipo:"+identifier.getTypeName()+"\n";
-					result += "Nível:"+currentLevel+"\n";
-					result += "Categoria:"+identifier.getCategoryName()+"\n";
-					result += "Transferência:"+identifier.getTransferTypeName()+"\n";
-					result += "----------------------"+"\n";
-				}
-				else
+				if (!STManager.addSymbol(identifier))
 				{
 					errorCode = ErrorConstants.ERR_DUPLICATE_IDENTIFIER;
 					errorParams = new ArrayList<String>();
@@ -825,24 +889,16 @@ SPECIAL_TOKEN:
 		<SEMICOLON>
 	}
 
-	void FunctionHeader(): {Token t;int dt;} {
-		<FUNCTION> t = <IDENTIFIER> {r6(); r13();}
+	void FunctionHeader(): {Token t;Identifier dt;} {
+		<FUNCTION> t = <IDENTIFIER> { Identifier id = r6(t); r13(id);}
 		<RETURNS> dt = DataType() {r7();}
 		{
-			Identifier id = new Identifier();
+			id = new Identifier();
 			id.setID(t.image.toUpperCase());
 			id.setLevel(currentLevel);
 			id.setType(dt);
 			id.setCategory(SymbolTableManager.CATEGORY_FUNCTION);
-			if (STManager.addSymbol(id))
-			{
-				result += "ID:"+id.getID()+"\n";
-				result += "Nível:"+id.getLevel()+"\n";
-				result += "Categoria:"+id.getCategoryName()+"\n";
-				result += "Retorno:"+id.getTypeName()+"\n";
-				result += "----------------------"+"\n";
-			}
-			else
+			if (!STManager.addSymbol(id))
 			{
 				errorCode = ErrorConstants.ERR_DUPLICATE_IDENTIFIER;
 				errorParams = new ArrayList<String>();
