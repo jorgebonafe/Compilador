@@ -71,8 +71,6 @@ public class JASON {
 		return id;
 	}
 
-	public void r2a(){}
-
 	public void r3(Token t, Identifier type) throws ParseException {
 		Identifier id = new Identifier();
 		id.setID(t.image.toUpperCase());
@@ -89,10 +87,6 @@ public class JASON {
 		permissao_tipo_array = true;
 		permissao_tipo_record = true;
 	}
-
-	public void r4(){}
-
-	public void r4a(){}
 
 	public Identifier r5(Token t) throws ParseException {
 		Identifier id = new Identifier();
@@ -122,7 +116,9 @@ public class JASON {
 		return id;
 	}
 
-	public void r7(){}
+	public void r7(Identifier id, Identifier type){
+		id.setType(type);
+	}
 
 	public Identifier r7a(Token t) throws ParseException {
 		Identifier id = STManager.getIdentifier(t.image);
@@ -135,7 +131,10 @@ public class JASON {
 		return id;
 	}
 
-	public void r8(){}
+	public void r8(Identifier id) {
+		STManager.removeLevel(currentLevel);
+		currentLevel--;
+	}
 
 	public void r10(Identifier id) throws ParseException {
 		if (permissao_tipo_array) {
@@ -195,15 +194,21 @@ public class JASON {
 		classe_t = SymbolTableManager.TRANSFER_REF;
 	}
 
-	public void r16(){}
+	public void r18(Identifier proc, Token t, Identifier dt) throws ParseException {
+		Identifier id = new Identifier();
+		id.setID(t.image.toUpperCase());
+		id.setLevel(currentLevel);
+		id.setCategory(SymbolTableManager.CATEGORY_PARAM);
+		id.setType(dt);
+		id.getParameters().add(id);
 
-	public void r17(){}
-
-	public void r18(){}
-
-	public void r19(){}
-
-	public void r20(){}
+		if (!STManager.addSymbol(id)) {
+			errorCode = ErrorConstants.ERR_DUPLICATE_IDENTIFIER;
+			errorParams = new ArrayList<String>();
+			errorParams.add(id.getID());
+			throw generateParseException();
+		}
+	}
 
 	public Identifier r21(Token t) throws ParseException {
 		Identifier id = STManager.getIdentifier(t.image);
@@ -253,10 +258,8 @@ public class JASON {
 		}
 	}
 
-	public void r23(){}
-
 	public void r24(int nPar) throws ParseException {
-		if (current_id.getNParameters() != nPar)		{			errorCode = ErrorConstants.ERR_N_PAR_INCOMPATICLE;
+		if (current_id.getParameters().size() != nPar)		{			errorCode = ErrorConstants.ERR_N_PAR_INCOMPATICLE;
 			throw generateParseException();
 		}
 	}
@@ -850,80 +853,39 @@ SPECIAL_TOKEN:
 		( ProcDecl() | FunctionDecl() )+ 
 	}
 
-	void ProcDecl(): {} {
-		ProcHeader()
-		{
-			currentLevel++;
-		}
-		SubProgramDeclSec() Block() {r8();}
-		{
-			STManager.removeLevel(currentLevel);
-			currentLevel--;
-		}
+	void ProcDecl(): {Identifier id;} {
+		id = ProcHeader() { currentLevel++; }
+		SubProgramDeclSec(id) Block() {r8(id);}
 		<SEMICOLON>
 	}
 
-	void ProcHeader(): {Token t;} {
-		<PROCEDURE> t = <IDENTIFIER> { Identifier id = r5(t); r13(id); }
-		<SEMICOLON>
+	Identifier ProcHeader(): {Token t;} {
+		<PROCEDURE> t = <IDENTIFIER>
+		{ Identifier id = r5(t); r13(id); } <SEMICOLON>
+		{ return id; }
 	}
 
-	void SubProgramDeclSec(): {} {
-		(ParamDeclSec())? DeclSec() 
+	void SubProgramDeclSec(Identifier proc): {} {
+		(ParamDeclSec(proc))? DeclSec() 
 	}
 
-	void ParamDeclSec(): {Identifier dt;Token t;Token tTransf = null;} {
-		{
-			ArrayList<Identifier> idList = new ArrayList<Identifier>();
-			Identifier id;
-		}
-		<PARAMETERS> ( {r14();} (tTransf = <VAR> {r15();})?
-				dt = DataType() {r19();}
-		t = <IDENTIFIER> {r18();}
-		{
-			id = new Identifier();
-			id.setID(t.image.toUpperCase());
-			id.setLevel(currentLevel);
-			id.setType(dt);
-			id.setCategory(SymbolTableManager.CATEGORY_PARAM);
-			if (tTransf==null) {
-				id.setTransferType(SymbolTableManager.TRANSFER_VALUE);
-			}
-			else {
-				id.setTransferType(SymbolTableManager.TRANSFER_REF);
-			}
-			idList.add(id);
-		}
-		<SEMICOLON> )+ {r20();}
-		{
-			for (Identifier identifier : idList) {
-				if (!STManager.addSymbol(identifier))
-				{
-					errorCode = ErrorConstants.ERR_DUPLICATE_IDENTIFIER;
-					errorParams = new ArrayList<String>();
-					errorParams.add(id.getID());
-					throw generateParseException();
-				}
-			}
-		}
+	void ParamDeclSec(Identifier proc): {Identifier dt;Token t;} {
+		<PARAMETERS> ( {r14();} (<VAR> {r15();})?
+				dt = DataType()
+		t = <IDENTIFIER> {r18(proc,t,dt);}
+		<SEMICOLON> )+
 	} 
 
-	void FunctionDecl(): {} {
-		FunctionHeader()
-		{
-			currentLevel++;
-		}
-		SubProgramDeclSec() FunctionBlock() {r8();}
-		{
-			STManager.removeLevel(currentLevel);
-			currentLevel--;
-		}
+	void FunctionDecl(): {Identifier id;} {
+		id = FunctionHeader() { currentLevel++; }
+		SubProgramDeclSec(id) FunctionBlock() {r8(id);}
+
 		<SEMICOLON>
 	}
 
-	void FunctionHeader(): {Token t;Identifier dt;} {
+	Identifier FunctionHeader(): {Token t;Identifier dt;} {
 		<FUNCTION> t = <IDENTIFIER> { Identifier id = r6(t); r13(id);}
-		<RETURNS> dt = DataType() {r7();}
+		<RETURNS> dt = DataType() {r7(id,dt);}
 		{
 			id = new Identifier();
 			id.setID(t.image.toUpperCase());
@@ -939,6 +901,7 @@ SPECIAL_TOKEN:
 			}
 		}
 		<SEMICOLON>
+		{ return id; }
 	}
 	void FunctionBlock(): {} { <BEGIN> ( Statement() <SEMICOLON> )+  <RETURN> <PARETHESIS_OPEN> Condition() <PARETHESIS_CLOSE> <END> }
 
