@@ -167,7 +167,7 @@ public class JASON {
 			errorTokenParams.add(t);
 			throw generateParseException();
 		}
-		id.setArraySize(new Integer(t.image));
+		id.setArraySize(size);
 		id.setArrayType(dt);
 		id.setNBytes(dt.getNBytes()*id.getArraySize());
 	}
@@ -249,9 +249,9 @@ public class JASON {
 	}
 
 	public void r22a() throws ParseException {
-		if (current_id.getCategory() != SymbolTableManager.CATEGORY_FUNCTION ||
-			current_id.getCategory() != SymbolTableManager.CATEGORY_PARAM ||
-			current_id.getCategory() != SymbolTableManager.CATEGORY_VAR ||
+		if (current_id.getCategory() != SymbolTableManager.CATEGORY_FUNCTION &&
+			current_id.getCategory() != SymbolTableManager.CATEGORY_PARAM &&
+			current_id.getCategory() != SymbolTableManager.CATEGORY_VAR &&
 			current_id.getCategory() != SymbolTableManager.CATEGORY_CONST)
 		{
 			errorCode = ErrorConstants.ERR_FPVC_NOT_DECLARED;
@@ -302,6 +302,7 @@ public class JASON {
 			this.Program();
 			result += "OK.\u005cn";
 		} catch (ParseException e) {
+			e.printStackTrace();
 			switch (errorCode)
 			{
 			case ErrorConstants.ERR_MULTIDIM_ARRAY: 
@@ -920,7 +921,7 @@ SPECIAL_TOKEN:
 		| <IF> Condition() <THEN> Statements() ElseClause() 
 		| <WHILE> Condition() <DO> Statements() <ENDWHILE> | <UNTIL> Condition() <DO> Statements() <ENDUNTIL> 
 		| <CALL> t = <IDENTIFIER> { r21(t); r25(); } ArgList()
-		  )
+		  )?
 	}
 
 	void ElseClause(): {} {
@@ -949,7 +950,7 @@ SPECIAL_TOKEN:
 	void SimpleCondition(): {} { 
 		Expression() ( 
 		( <OP_EQUALS> | <OP_DIFFERENT> | <OP_GREATER_OR_EQUAL> | <OP_LESS_OR_EQUAL> | <OP_LESS> | <OP_GREATER> )
-		) Expression()
+		Expression()
 		)? 
 	}
 
