@@ -31,6 +31,7 @@ public class JASON {
 	Identifier current_id = null;
 	Identifier proc_id = null;
 	boolean permissao_tipo_array = false;
+	boolean permissao_tipo_record = false;
 	int classe_t;
 
 	public Identifier r0(Token t) throws ParseException {
@@ -56,6 +57,7 @@ public class JASON {
 		Identifier id = new Identifier();
 		id.setID(t.image.toUpperCase());
 		id.setLevel(currentLevel);
+		id.setCategory(SymbolTableManager.CATEGORY_TYPE);
 
 		if (!STManager.addSymbol(id)) {
 			errorCode = ErrorConstants.ERR_DUPLICATE_IDENTIFIER;
@@ -64,11 +66,10 @@ public class JASON {
 			throw generateParseException();
 		}
 		permissao_tipo_array = true;
+		permissao_tipo_record = true;
 
 		return id;
 	}
-
-	public void r2(){}
 
 	public void r2a(){}
 
@@ -86,6 +87,7 @@ public class JASON {
 			throw generateParseException();
 		}
 		permissao_tipo_array = true;
+		permissao_tipo_record = true;
 	}
 
 	public void r4(){}
@@ -135,19 +137,25 @@ public class JASON {
 
 	public void r8(){}
 
-	public void r9(){}
-
-	public void r10() throws ParseException {
+	public void r10(Identifier id) throws ParseException {
 		if (permissao_tipo_array) {
-			//TODO
-
+			id.setType(STManager.getTypeArray());
 			permissao_tipo_array = false;		}
 		else {
 			errorCode = ErrorConstants.ERR_MULTIDIM_ARRAY;
 			throw generateParseException();		}
 	}
 
-	public void r10a(){}
+	public void r10a(Identifier id) throws ParseException {
+		if (permissao_tipo_record) {
+			id.setType(STManager.getTypeRecord());
+			permissao_tipo_record = false;
+		}
+		else {
+			errorCode = ErrorConstants.ERR_MULTIDIM_RECORD;
+			throw generateParseException();
+		}
+	}
 
 	public void r12(Identifier id, Token t, Identifier dt) throws ParseException {
 		int size = new Integer(t.image);
@@ -155,9 +163,23 @@ public class JASON {
 			errorCode = ErrorConstants.ERR_NEGATIVE_ARRAY;
 			errorTokenParams = new ArrayList<Token>();
 			errorTokenParams.add(t);
-			throw generateParseException();		}
+			throw generateParseException();
+		}
 		id.setArraySize(new Integer(t.image));
+		id.setArrayType(dt);
 		id.setNBytes(dt.getNBytes()*id.getArraySize());
+	}
+
+	public void r12a(Identifier id, Token t, Identifier dt) {
+		Identifier aux = new Identifier();
+		aux.setID(t.image.toUpperCase());
+		aux.setLevel(currentLevel);
+		aux.setType(dt);
+		id.setNBytes(dt.getNBytes());
+		aux.setCategory(SymbolTableManager.CATEGORY_VAR);
+		
+		id.setNBytes(id.getNBytes()+dt.getNBytes());
+		id.getRecordTypes().add(aux);
 	}
 
 	public void r13(Identifier id) {
@@ -183,7 +205,7 @@ public class JASON {
 
 	public void r20(){}
 
-	public void r21(Token t) throws ParseException {
+	public Identifier r21(Token t) throws ParseException {
 		Identifier id = STManager.getIdentifier(t.image);
 		if (id==null) {
 			errorCode = ErrorConstants.ERR_IDENTIFIER_NOT_DECLARED;
@@ -193,6 +215,19 @@ public class JASON {
 		}
 
 		current_id = id;
+		return id;
+	}
+
+	public void r21a(Identifier id,Token t) throws ParseException {
+		Identifier aux = STManager.getRecordIdentifier(id,t.image);
+		if (aux==null) {
+			errorCode = ErrorConstants.ERR_IDENTIFIER_NOT_DECLARED;
+			errorParams = new ArrayList<String>();
+			errorParams.add(t.image.toUpperCase());
+			throw generateParseException();
+		}
+
+		current_id = aux;
 	}
 
 	public void r22() throws ParseException {
@@ -280,7 +315,7 @@ public class JASON {
 						+ e.currentToken.beginColumn;
 				break;
 			case ErrorConstants.ERR_FUNCTION_NOT_DECLARED: 
-				errorMessage = "Identificador não declarado ("+
+				errorMessage = "Função não declarada ("+
 						errorParams.get(0)+
 						") na linha " + e.currentToken.beginLine + ", coluna "
 						+ e.currentToken.beginColumn;
@@ -722,10 +757,6 @@ SPECIAL_TOKEN:
 	void Header(): {} { <PROGRAM> <IDENTIFIER> <SEMICOLON> }
 	void Block(): {} { <BEGIN> Statements() <END> }
 
-
-
-
-
 	//Declarações
 
 	void DeclSec(): {} { 
@@ -761,21 +792,22 @@ SPECIAL_TOKEN:
 	}
 
 	void TypeDeclSec(): {Token t; Identifier id;} { 
-		<TYPES> ( t = <IDENTIFIER> {id = r1(t);} ( ArraySpecification(id) {r2();} | RecordSpecification() {r2a();}) <SEMICOLON> )+ 
+		<TYPES> ( t = <IDENTIFIER> {id = r1(t);} ( ArraySpecification(id) |
+		RecordSpecification(id) ) <SEMICOLON> )+ 
 	}
 
 	void ArraySpecification(Identifier id): {Identifier dt;Token t;} { 
-		<ARRAY> {r10();}
+		<ARRAY> {r10(id);}
 		dt = DataType() <BRACKET_OPEN> t = <INTEGER_CONST>
 		{r12(id,t,dt);} <BRACKET_CLOSE> 
 	}
 
-	void RecordSpecification(): {} { 
-		<RECORD> {r10a();} VarDeclsRecord() <END>
+	void RecordSpecification(Identifier id): {} { 
+		<RECORD> {r10a(id);} VarDeclsRecord(id) <END>
 	}
 
-	void VarDeclsRecord(): {Identifier dt;} {
-		( dt = DataType() {r4a();} IdListRecord(dt) /*{r3record?();}*/ <SEMICOLON> )+
+	void VarDeclsRecord(Identifier id): {Identifier dt;} {
+		( dt = DataType() IdListRecord(id,dt) <SEMICOLON> )+
 	}
 
 	void VarDeclSec(): {} { 
@@ -806,12 +838,12 @@ SPECIAL_TOKEN:
 				)*
 	}
 
-	void IdListRecord(Identifier dt): {Token t;} {
+	void IdListRecord(Identifier id, Identifier dt): {Token t;} {
 		t = <IDENTIFIER>
-		//	{r3(t,dt);}
+		{r12a(id,t,dt);}
 		( <COMMA> t = <IDENTIFIER>
-		//	{r3(t,dt);}
-				)*
+		{r12a(id,t,dt);}
+		)*
 	}
 
 	void SubProgramDecls(): {} { 
@@ -964,8 +996,8 @@ SPECIAL_TOKEN:
 
 	void Factor(): {Token t;int nPar;} {
 		Bool() |
-		t = <IDENTIFIER> {r21(t); r22a();}
-		( <PARETHESIS_OPEN> {r22();} nPar =  Arguments() {r24(nPar);} <PARETHESIS_CLOSE> )? VariableAux() 
+		t = <IDENTIFIER> { Identifier id = r21(t); r22a();}
+		( <PARETHESIS_OPEN> {r22();} nPar =  Arguments() {r24(nPar);} <PARETHESIS_CLOSE> )? VariableAux(id) 
 		| (<INTEGER_CONST> | <REAL_CONST>) {r26();}
 		| <STRING_CONST> 
 		| <NOT> Factor() 
@@ -976,13 +1008,13 @@ SPECIAL_TOKEN:
 		( <TRUE> | <FALSE> ) 
 	}
 
-	void Variable(): {Token t;} {
-		t = <IDENTIFIER> {r21(t);}
-		VariableAux()
+	void Variable(): {Token t; Identifier id;} {
+		t = <IDENTIFIER> {id = r21(t);}
+		VariableAux(id)
 	}
 
-	void VariableAux(): {Token t;} {
-		( <DOT> t = <IDENTIFIER> {r21(t);}
+	void VariableAux(Identifier id): {Token t;} {
+		( <DOT> t = <IDENTIFIER> {r21a(id,t);}
 		| <BRACKET_OPEN>  Expression() <BRACKET_CLOSE> )*
 	}
 	void RelOp(): {} { ( <OP_EQUALS> | <OP_DIFFERENT> | <OP_GREATER_OR_EQUAL> | <OP_LESS_OR_EQUAL> | <OP_LESS> | <OP_GREATER> ) }
