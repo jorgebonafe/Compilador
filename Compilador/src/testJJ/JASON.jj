@@ -50,7 +50,8 @@ public class JASON {
 
 	public void r0a(Identifier id, int cat, Identifier type, String value) {
 		id.setCategory(cat);
-		id.setType(type);		id.setValue(value);
+		id.setType(type);
+		id.setValue(value);
 	}
 
 	public Identifier r1(Token t) throws ParseException {
@@ -139,10 +140,12 @@ public class JASON {
 	public void r10(Identifier id) throws ParseException {
 		if (permissao_tipo_array) {
 			id.setType(STManager.getTypeArray());
-			permissao_tipo_array = false;		}
+			permissao_tipo_array = false;
+		}
 		else {
 			errorCode = ErrorConstants.ERR_MULTIDIM_ARRAY;
-			throw generateParseException();		}
+			throw generateParseException();
+		}
 	}
 
 	public void r10a(Identifier id) throws ParseException {
@@ -259,7 +262,9 @@ public class JASON {
 	}
 
 	public void r24(int nPar) throws ParseException {
-		if (current_id.getParameters().size() != nPar)		{			errorCode = ErrorConstants.ERR_N_PAR_INCOMPATICLE;
+		if (current_id.getParameters().size() != nPar)
+		{
+			errorCode = ErrorConstants.ERR_N_PAR_INCOMPATICLE;
 			throw generateParseException();
 		}
 	}
@@ -942,15 +947,18 @@ SPECIAL_TOKEN:
 	}
 
 	void SimpleCondition(): {} { 
-		Expression() (RelOp() Expression())? 
+		Expression() ( 
+		( <OP_EQUALS> | <OP_DIFFERENT> | <OP_GREATER_OR_EQUAL> | <OP_LESS_OR_EQUAL> | <OP_LESS> | <OP_GREATER> )
+		) Expression()
+		)? 
 	}
 
 	void Expression(): {} { 
-		Term() ( AddOp() Term() )* 
+		Term() ( (<OP_ADD> | <OP_SUB> ) Term() )* 
 	}
 
 	void Term(): {} { 
-		Unary() ( MultOp() Unary() )* 
+		Unary() ( ( <OP_MULT> | <OP_DIV> | <OP_MOD> ) Unary() )* 
 	}
 
 	void Unary(): {} { 
