@@ -30,8 +30,6 @@ public class JASON {
 
 	Identifier current_id = null;
 	Identifier proc_id = null;
-	boolean permissao_tipo_array = false;
-	boolean permissao_tipo_record = false;
 	int classe_t;
 
 	public Identifier r0(Token t) throws ParseException {
@@ -66,8 +64,6 @@ public class JASON {
 			errorParams.add(id.getID());
 			throw generateParseException();
 		}
-		permissao_tipo_array = true;
-		permissao_tipo_record = true;
 
 		return id;
 	}
@@ -85,8 +81,6 @@ public class JASON {
 			errorParams.add(id.getID());
 			throw generateParseException();
 		}
-		permissao_tipo_array = true;
-		permissao_tipo_record = true;
 	}
 
 	public Identifier r5(Token t) throws ParseException {
@@ -144,25 +138,11 @@ public class JASON {
 	}
 
 	public void r10(Identifier id) throws ParseException {
-		if (permissao_tipo_array) {
-			id.setType(STManager.getTypeArray());
-			permissao_tipo_array = false;
-		}
-		else {
-			errorCode = ErrorConstants.ERR_MULTIDIM_ARRAY;
-			throw generateParseException();
-		}
+		id.setType(STManager.getTypeArray());
 	}
 
 	public void r10a(Identifier id) throws ParseException {
-		if (permissao_tipo_record) {
-			id.setType(STManager.getTypeRecord());
-			permissao_tipo_record = false;
-		}
-		else {
-			errorCode = ErrorConstants.ERR_MULTIDIM_RECORD;
-			throw generateParseException();
-		}
+		id.setType(STManager.getTypeRecord());
 	}
 
 	public void r12(Identifier id, Token t, Identifier dt) throws ParseException {
@@ -191,7 +171,6 @@ public class JASON {
 	}
 
 	public void r13(Identifier id) {
-		permissao_tipo_array = true;
 		proc_id = id;
 	}
 
@@ -286,7 +265,40 @@ public class JASON {
 		}
 	}
 
-	public void r26(){}
+	public void r26(Token t, Token sign) throws ParseException {
+		Integer i = null;
+		try {
+			i = new Integer(t.image);
+			if (sign != null && sign.kind == OP_SUB)
+				i = -i;
+		} catch (Exception e) {
+			r27(t,sign);
+			return;
+		}
+		if (i<-32768 || i>32767) {
+			r27(t,sign);
+		}
+	}
+
+	public void r27(Token t, Token sign) throws ParseException {
+		Double d = null;
+		try {
+			d = new Double(t.image);
+			if (sign != null && sign.kind == OP_SUB)
+				d = -d;
+		} catch (Exception e) {
+			errorCode = ErrorConstants.ERR_REAL_OVERFLOW;
+			errorParams = new ArrayList<String>();
+			errorParams.add(t.image);
+			throw generateParseException();
+		}
+		if (d<-2147483648d || d>2147483647d) {
+			errorCode = ErrorConstants.ERR_REAL_OVERFLOW;
+			errorParams = new ArrayList<String>();
+			errorParams.add(t.image);
+			throw generateParseException();
+		}
+	}
 
 	public void r27(ArrayList<Identifier> ids) throws ParseException {
 		if (current_id.getCategory() != SymbolTableManager.CATEGORY_PARAM &&
@@ -331,11 +343,19 @@ public class JASON {
 						") na linha " + e.currentToken.beginLine + ", coluna "
 						+ e.currentToken.beginColumn + ", não pode ser modificado.";
 				break;
-			case ErrorConstants.ERR_MULTIDIM_ARRAY: 
-				errorMessage = "Arrays de múltiplas dimensões não"+
-						" são permitidos, linha "+
-						e.currentToken.beginLine + ", coluna "
-						+ e.currentToken.beginColumn;
+			case ErrorConstants.ERR_INT_OVERFLOW: 
+				errorMessage = "Valor inteiro ("+
+						errorParams.get(0)+
+						") na linha " + e.currentToken.beginLine + ", coluna "
+						+ e.currentToken.beginColumn +
+						", não é valido. Inteiros devem estar entre -32768 e 32767.";
+				break;
+			case ErrorConstants.ERR_REAL_OVERFLOW: 
+				errorMessage = "Valor real ("+
+						errorParams.get(0)+
+						") na linha " + e.currentToken.beginLine + ", coluna "
+						+ e.currentToken.beginColumn +
+						", não é valido. Reais devem estar entre -32768 e 32767.";
 				break;
 			case ErrorConstants.ERR_DUPLICATE_IDENTIFIER: 
 				errorMessage = "Identificador duplicado ("+
@@ -974,17 +994,17 @@ SPECIAL_TOKEN:
 		Unary() ( ( <OP_MULT> | <OP_DIV> | <OP_MOD> ) Unary() )* 
 	}
 
-	void Unary(): {} { 
-		( ( <OP_ADD> | <OP_SUB> ) )? Factor() 
+	void Unary(): {Token t = null;} { 
+		( ( t = <OP_ADD> | t = <OP_SUB> ) )? Factor(t) 
 	}
-
-	void Factor(): {Token t;int nPar;} {
+	
+	void Factor(Token sign): {Token t;int nPar;} {
 		Bool() |
 		t = <IDENTIFIER> { Identifier id = r21(t); r22a();}
 		( <PARETHESIS_OPEN> {r22();} nPar =  Arguments() {r24(nPar);} <PARETHESIS_CLOSE> )? VariableAux(id) 
-		| (<INTEGER_CONST> | <REAL_CONST>) {r26();}
+		| ( t = <INTEGER_CONST> {r26(t,sign);} | t = <REAL_CONST> {r27(t,sign);} )
 		| <STRING_CONST> 
-		| <NOT> Factor() 
+		| <NOT> Factor(null) 
 		| <PARETHESIS_OPEN> Condition() <PARETHESIS_CLOSE>
 	}
 
