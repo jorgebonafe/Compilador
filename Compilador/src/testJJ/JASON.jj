@@ -123,6 +123,12 @@ public class JASON {
 
 	public Identifier r7a(Token t) throws ParseException {
 		Identifier id = STManager.getIdentifier(t.image);
+		if (id == null) {
+			errorCode = ErrorConstants.ERR_TYPE_NOT_DECLARED;
+			errorParams = new ArrayList<String>();
+			errorParams.add(t.image);
+			throw generateParseException();
+		}
 		if (id.getCategory() != SymbolTableManager.CATEGORY_TYPE) {
 			errorCode = ErrorConstants.ERR_TYPE_NOT_DECLARED;
 			errorParams = new ArrayList<String>();
@@ -226,7 +232,7 @@ public class JASON {
 		return id;
 	}
 
-	public void r21a(Identifier id,Token t) throws ParseException {
+	public Identifier r21a(Identifier id,Token t) throws ParseException {
 		Identifier aux = STManager.getRecordIdentifier(id,t.image);
 		if (aux==null) {
 			errorCode = ErrorConstants.ERR_IDENTIFIER_NOT_DECLARED;
@@ -236,6 +242,7 @@ public class JASON {
 		}
 
 		current_id = aux;
+		return aux;
 	}
 
 	public void r22() throws ParseException {
@@ -281,6 +288,20 @@ public class JASON {
 
 	public void r26(){}
 
+	public void r27(ArrayList<Identifier> ids) throws ParseException {
+		if (current_id.getCategory() != SymbolTableManager.CATEGORY_PARAM &&
+			current_id.getCategory() != SymbolTableManager.CATEGORY_VAR)
+		{
+			String s = ids.get(0).getID();
+			for (int i=1;i<ids.size();i++) {				s = s+"."+ids.get(i);
+			}
+			errorCode = ErrorConstants.ERR_CANT_SET;
+			errorParams = new ArrayList<String>();
+			errorParams.add(s);
+			throw generateParseException();
+		}
+	}
+
 	public int getErrorCode()
 	{
 		return errorCode;
@@ -302,9 +323,14 @@ public class JASON {
 			this.Program();
 			result += "OK.\u005cn";
 		} catch (ParseException e) {
-			e.printStackTrace();
 			switch (errorCode)
 			{
+			case ErrorConstants.ERR_CANT_SET: 
+				errorMessage = "Identificador ("+
+						errorParams.get(0)+
+						") na linha " + e.currentToken.beginLine + ", coluna "
+						+ e.currentToken.beginColumn + ", não pode ser modificado.";
+				break;
 			case ErrorConstants.ERR_MULTIDIM_ARRAY: 
 				errorMessage = "Arrays de múltiplas dimensões não"+
 						" são permitidos, linha "+
@@ -892,20 +918,6 @@ SPECIAL_TOKEN:
 	Identifier FunctionHeader(): {Token t;Identifier dt;} {
 		<FUNCTION> t = <IDENTIFIER> { Identifier id = r6(t); r13(id);}
 		<RETURNS> dt = DataType() {r7(id,dt);}
-		{
-			id = new Identifier();
-			id.setID(t.image.toUpperCase());
-			id.setLevel(currentLevel);
-			id.setType(dt);
-			id.setCategory(SymbolTableManager.CATEGORY_FUNCTION);
-			if (!STManager.addSymbol(id))
-			{
-				errorCode = ErrorConstants.ERR_DUPLICATE_IDENTIFIER;
-				errorParams = new ArrayList<String>();
-				errorParams.add(id.getID());
-				throw generateParseException();
-			}
-		}
 		<SEMICOLON>
 		{ return id; }
 	}
@@ -914,9 +926,9 @@ SPECIAL_TOKEN:
 	//Comandos
 
 	void Statements(): {} { Statement() ( <SEMICOLON> Statement() )* }
-	void Statement(): {Token t;} { 
+	void Statement(): {Token t; ArrayList<Identifier> ids;} { 
 		( <READ> Variable() 
-		| <SET> Variable() <OP_EQUALS> Expression()
+		| <SET> ids = Variable() { r27(ids); } <OP_EQUALS> Expression()
 		| <WRITE> Variable() 
 		| <IF> Condition() <THEN> Statements() ElseClause() 
 		| <WHILE> Condition() <DO> Statements() <ENDWHILE> | <UNTIL> Condition() <DO> Statements() <ENDUNTIL> 
@@ -980,14 +992,17 @@ SPECIAL_TOKEN:
 		( <TRUE> | <FALSE> ) 
 	}
 
-	void Variable(): {Token t; Identifier id;} {
-		t = <IDENTIFIER> {id = r21(t);}
-		VariableAux(id)
+	ArrayList<Identifier> Variable(): {Token t; Identifier id;
+		ArrayList<Identifier> ids = new ArrayList<Identifier>();} {
+		t = <IDENTIFIER> {id = r21(t); ids.add(id);}
+		id = VariableAux(id) { if (id!=null) ids.add(id); }
+		{ return ids; }
 	}
 
-	void VariableAux(Identifier id): {Token t;} {
-		( <DOT> t = <IDENTIFIER> {r21a(id,t);}
+	Identifier VariableAux(Identifier id): {Token t; Identifier aux = null;} {
+		( <DOT> t = <IDENTIFIER> {aux = r21a(id,t);}
 		| <BRACKET_OPEN>  Expression() <BRACKET_CLOSE> )*
+		{ return aux; }
 	}
 	void RelOp(): {} { ( <OP_EQUALS> | <OP_DIFFERENT> | <OP_GREATER_OR_EQUAL> | <OP_LESS_OR_EQUAL> | <OP_LESS> | <OP_GREATER> ) }
 	void AddOp(): {} { ( <OP_ADD> | <OP_SUB> ) }
