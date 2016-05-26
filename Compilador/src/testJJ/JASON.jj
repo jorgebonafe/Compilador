@@ -28,7 +28,6 @@ public class JASON {
 	HashMap<String,String> definitions;
 	int offset = 0;
 
-	Identifier current_id = null;
 	Identifier proc_id = null;
 	int classe_t;
 
@@ -145,9 +144,9 @@ public class JASON {
 		id.setType(STManager.getTypeRecord());
 	}
 
-	public void r12(Identifier id, Token t, Identifier dt) throws ParseException {
+	public void r12(Identifier id, Token t, Identifier dt, int minusCount) throws ParseException {
 		int size = new Integer(t.image);
-		if (size<=0) {
+		if (size<=0 || minusCount%2!=0) {
 			errorCode = ErrorConstants.ERR_NEGATIVE_ARRAY;
 			errorTokenParams = new ArrayList<Token>();
 			errorTokenParams.add(t);
@@ -188,7 +187,7 @@ public class JASON {
 		id.setLevel(currentLevel);
 		id.setCategory(SymbolTableManager.CATEGORY_PARAM);
 		id.setType(dt);
-		id.getParameters().add(id);
+		proc.getParameters().add(id);
 
 		if (!STManager.addSymbol(id)) {
 			errorCode = ErrorConstants.ERR_DUPLICATE_IDENTIFIER;
@@ -207,7 +206,6 @@ public class JASON {
 			throw generateParseException();
 		}
 
-		current_id = id;
 		return id;
 	}
 
@@ -220,47 +218,45 @@ public class JASON {
 			throw generateParseException();
 		}
 
-		current_id = aux;
 		return aux;
 	}
 
-	public void r22() throws ParseException {
-		if (current_id.getCategory() != SymbolTableManager.CATEGORY_FUNCTION)
+	public void r22(Identifier id) throws ParseException {
+		if (id.getCategory() != SymbolTableManager.CATEGORY_FUNCTION)
 		{
 			errorCode = ErrorConstants.ERR_FUNCTION_NOT_DECLARED;
 			errorParams = new ArrayList<String>();
-			errorParams.add(current_id.getID());
+			errorParams.add(id.getID());
 			throw generateParseException();
 		}
 	}
 
-	public void r22a() throws ParseException {
-		if (current_id.getCategory() != SymbolTableManager.CATEGORY_FUNCTION &&
-			current_id.getCategory() != SymbolTableManager.CATEGORY_PARAM &&
-			current_id.getCategory() != SymbolTableManager.CATEGORY_VAR &&
-			current_id.getCategory() != SymbolTableManager.CATEGORY_CONST)
+	public void r22a(Identifier id) throws ParseException {
+		if (id.getCategory() != SymbolTableManager.CATEGORY_FUNCTION &&
+			id.getCategory() != SymbolTableManager.CATEGORY_PARAM &&
+			id.getCategory() != SymbolTableManager.CATEGORY_VAR &&
+			id.getCategory() != SymbolTableManager.CATEGORY_CONST)
 		{
 			errorCode = ErrorConstants.ERR_FPVC_NOT_DECLARED;
 			errorParams = new ArrayList<String>();
-			errorParams.add(current_id.getID());
+			errorParams.add(id.getID());
 			throw generateParseException();
 		}
 	}
 
-	public void r24(int nPar) throws ParseException {
-		if (current_id.getParameters().size() != nPar)
-		{
+	public void r24(Identifier id, int nPar) throws ParseException {
+		if (id.getParameters().size() != nPar){
 			errorCode = ErrorConstants.ERR_N_PAR_INCOMPATICLE;
 			throw generateParseException();
 		}
 	}
 
-	public void r25() throws ParseException {
-		if (current_id.getCategory() != SymbolTableManager.CATEGORY_PROCEDURE)
+	public void r25(Identifier id) throws ParseException {
+		if (id.getCategory() != SymbolTableManager.CATEGORY_PROCEDURE)
 		{
 			errorCode = ErrorConstants.ERR_PROCEDURE_NOT_DECLARED;
 			errorParams = new ArrayList<String>();
-			errorParams.add(current_id.getID());
+			errorParams.add(id.getID());
 			throw generateParseException();
 		}
 	}
@@ -301,8 +297,9 @@ public class JASON {
 	}
 
 	public void r27(ArrayList<Identifier> ids) throws ParseException {
-		if (current_id.getCategory() != SymbolTableManager.CATEGORY_PARAM &&
-			current_id.getCategory() != SymbolTableManager.CATEGORY_VAR)
+		Identifier id = ids.get(ids.size()-1);
+		if (id.getCategory() != SymbolTableManager.CATEGORY_PARAM &&
+			id.getCategory() != SymbolTableManager.CATEGORY_VAR)
 		{
 			String s = ids.get(0).getID();
 			for (int i=1;i<ids.size();i++) {				s = s+"."+ids.get(i);
@@ -310,6 +307,17 @@ public class JASON {
 			errorCode = ErrorConstants.ERR_CANT_SET;
 			errorParams = new ArrayList<String>();
 			errorParams.add(s);
+			throw generateParseException();
+		}
+	}
+
+	public void rVP(Identifier id) throws ParseException {
+		if (id.getCategory() != SymbolTableManager.CATEGORY_PARAM &&
+			id.getCategory() != SymbolTableManager.CATEGORY_VAR)
+		{
+			errorCode = ErrorConstants.ERR_VP_NOT_DECLARED;
+			errorParams = new ArrayList<String>();
+			errorParams.add(id.getID());
 			throw generateParseException();
 		}
 	}
@@ -392,6 +400,12 @@ public class JASON {
 						") na linha " + e.currentToken.beginLine + ", coluna "
 						+ e.currentToken.beginColumn;
 				break;
+			case ErrorConstants.ERR_VP_NOT_DECLARED: 
+				errorMessage = "Parâmetro ou variável não declarada ("+
+						errorParams.get(0)+
+						") na linha " + e.currentToken.beginLine + ", coluna "
+						+ e.currentToken.beginColumn;
+				break;
 			case ErrorConstants.ERR_CONSTANT_NOT_DEFINED: 
 				errorMessage = "Constante não definida ("+
 						errorParams.get(0)+
@@ -400,7 +414,7 @@ public class JASON {
 				break;
 			case ErrorConstants.ERR_NEGATIVE_ARRAY: 
 				errorMessage = "Array de tamanho não positivo "+
-					") na linha " +
+					"na linha " +
 					errorTokenParams.get(0).beginLine + ", coluna "+
 					errorTokenParams.get(0).beginColumn;
 				break;
@@ -851,10 +865,13 @@ SPECIAL_TOKEN:
 		RecordSpecification(id) ) <SEMICOLON> )+ 
 	}
 
-	void ArraySpecification(Identifier id): {Identifier dt;Token t;} { 
+	void ArraySpecification(Identifier id): {Identifier dt;Token t;int minusCount = 0;} { 
 		<ARRAY> {r10(id);}
-		dt = DataType() <BRACKET_OPEN> t = <INTEGER_CONST>
-		{r12(id,t,dt);} <BRACKET_CLOSE> 
+		dt = DataType() <BRACKET_OPEN>
+		( t = <INTEGER_CONST> {r12(id,t,dt,0);}
+		| (<OP_SUB> {minusCount++;} | <OP_ADD> )+ t = <INTEGER_CONST> {r12(id,t,dt,minusCount);}
+		)
+		<BRACKET_CLOSE>
 	}
 
 	void RecordSpecification(Identifier id): {} { 
@@ -946,13 +963,13 @@ SPECIAL_TOKEN:
 	//Comandos
 
 	void Statements(): {} { Statement() ( <SEMICOLON> Statement() )* }
-	void Statement(): {Token t; ArrayList<Identifier> ids;} { 
-		( <READ> Variable() 
+	void Statement(): {Token t; ArrayList<Identifier> ids; Identifier id;} { 
+		( <READ> ids = Variable() { r27(ids); }
 		| <SET> ids = Variable() { r27(ids); } <OP_EQUALS> Expression()
 		| <WRITE> Variable() 
 		| <IF> Condition() <THEN> Statements() ElseClause() 
 		| <WHILE> Condition() <DO> Statements() <ENDWHILE> | <UNTIL> Condition() <DO> Statements() <ENDUNTIL> 
-		| <CALL> t = <IDENTIFIER> { r21(t); r25(); } ArgList()
+		| <CALL> t = <IDENTIFIER> { id = r21(t); r25(id); } ArgList(id)
 		  )?
 	}
 
@@ -960,8 +977,8 @@ SPECIAL_TOKEN:
 		( <ELSE> Statements() )? <ENDIF> 
 	}
 
-	void ArgList(): {Token t = null; int nPar;} {
-		( t = <PARETHESIS_OPEN> nPar = Arguments() <PARETHESIS_CLOSE>  {r24(nPar);} )?
+	void ArgList(Identifier id): {Token t = null; int nPar;} {
+		( t = <PARETHESIS_OPEN> nPar = Arguments() <PARETHESIS_CLOSE>  {r24(id,nPar);} )?
 	}
 
 	int Arguments(): {int nArg = 1;} {
@@ -1000,8 +1017,8 @@ SPECIAL_TOKEN:
 	
 	void Factor(Token sign): {Token t;int nPar;} {
 		Bool() |
-		t = <IDENTIFIER> { Identifier id = r21(t); r22a();}
-		( <PARETHESIS_OPEN> {r22();} nPar =  Arguments() {r24(nPar);} <PARETHESIS_CLOSE> )? VariableAux(id) 
+		t = <IDENTIFIER> { Identifier id = r21(t); r22a(id);}
+		( <PARETHESIS_OPEN> {r22(id);} nPar =  Arguments() {r24(id,nPar);} <PARETHESIS_CLOSE> )? VariableAux(id) 
 		| ( t = <INTEGER_CONST> {r26(t,sign);} | t = <REAL_CONST> {r27(t,sign);} )
 		| <STRING_CONST> 
 		| <NOT> Factor(null) 
@@ -1020,7 +1037,7 @@ SPECIAL_TOKEN:
 	}
 
 	Identifier VariableAux(Identifier id): {Token t; Identifier aux = null;} {
-		( <DOT> t = <IDENTIFIER> {aux = r21a(id,t);}
+		( <DOT> { rVP(id); } t = <IDENTIFIER> {aux = r21a(id,t);}
 		| <BRACKET_OPEN>  Expression() <BRACKET_CLOSE> )*
 		{ return aux; }
 	}
