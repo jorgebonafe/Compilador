@@ -31,7 +31,27 @@ public class JASON {
 	Identifier proc_id = null;
 	int classe_t;
 
-	public Identifier r0(Token t) throws ParseException {
+	public void error(String s) // REMOVER TODO	{	}
+
+	public void error(int error) throws ParseException
+	{
+		errorCode = error;
+		throw generateParseException();
+	}
+
+	public boolean validLogicType(Identifier id) {
+		if (id.getType() == STManager.getTypeBoolean() ||
+			id.getType() == STManager.getTypeInteger())
+			return true;
+		return false;
+	}
+
+	public void testInteger(Identifier id) {
+		if (id != STManager.getTypeInteger())
+			error("INTEIRO REQUERIDO");
+	}
+
+	public Identifier createIdentifier(Token t) throws ParseException {
 		Identifier id = new Identifier();
 		id.setID(t.image.toUpperCase());
 		id.setLevel(currentLevel);
@@ -261,26 +281,26 @@ public class JASON {
 		}
 	}
 
-	public void r26(Token t, Token sign) throws ParseException {
+	public void r26(Token t, boolean minus) throws ParseException {
 		Integer i = null;
 		try {
 			i = new Integer(t.image);
-			if (sign != null && sign.kind == OP_SUB)
+			if (minus)
 				i = -i;
 		} catch (Exception e) {
-			r27(t,sign);
+			r26r(t,minus);
 			return;
 		}
 		if (i<-32768 || i>32767) {
-			r27(t,sign);
+			r26r(t,minus);
 		}
 	}
 
-	public void r27(Token t, Token sign) throws ParseException {
+	public void r26r(Token t, boolean minus) throws ParseException {
 		Double d = null;
 		try {
 			d = new Double(t.image);
-			if (sign != null && sign.kind == OP_SUB)
+			if (minus)
 				d = -d;
 		} catch (Exception e) {
 			errorCode = ErrorConstants.ERR_REAL_OVERFLOW;
@@ -365,6 +385,10 @@ public class JASON {
 						") na linha " + e.currentToken.beginLine + ", coluna "
 						+ e.currentToken.beginColumn +
 						", não é valido. Reais devem estar entre -32768 e 32767.";
+				break;
+			case ErrorConstants.ERR_LOGIC_OP_INVALID: 
+				errorMessage = "Valor lógico inválido na linha " +
+				e.currentToken.beginLine + ".";
 				break;
 			case ErrorConstants.ERR_DUPLICATE_IDENTIFIER: 
 				errorMessage = "Identificador duplicado ("+
@@ -839,7 +863,7 @@ SPECIAL_TOKEN:
 		Identifier type[] = new Identifier[1];
 		String value[] = new String[1];
 	} { 
-		<DEFINE> ( t = <IDENTIFIER> { Identifier id = r0(t);}
+		<DEFINE> ( t = <IDENTIFIER> { Identifier id = createIdentifier(t);}
 		<OP_EQUALS> Values(id, type,value)
 		<SEMICOLON> {r0a(id,SymbolTableManager.CATEGORY_CONST,type[0],value[0]);})+ 
 	}
@@ -964,29 +988,23 @@ SPECIAL_TOKEN:
 	//Comandos
 
 	void Statements(): {} { Statement() ( <SEMICOLON> Statement() )* }
-	void Statement(): {int t1, t2; Token t; ArrayList<Identifier> ids; Identifier id;} { 
+	void Statement():
+	{Identifier t1[], t2[]; Token t; ArrayList<Identifier> ids; Identifier id;} {
+		{
+			t1 = new Identifier[1];
+			t2 = new Identifier[1];
+		} 
 		( <READ> ids = Variable(t1) { r27(ids); }
 		| <SET> ids = Variable(t1) { r27(ids); } <OP_EQUALS> Expression(t2)
 			{
-				if (t1 != t2) {
-					//if (tipo primário de ambos é o mesmo) OK
-					//else
-					error("Set de tipos incompativeis");
+				if (t1[0] != t2[0]) {
+					error("Set de tipos incompativeis"); // TODO
 				}  
 			}
 		| <WRITE> Variable(t1) 
-		| <IF> Condition(t1) <THEN> Statements() ElseClause() 
-			{
-				if (t1 != STManager.getTypeBoolean()) error("Condicional do IF deve ser boolean");
-			}
-		| <WHILE> Condition(t1) <DO> Statements() <ENDWHILE> 
-			{
-				if (t1 != STManager.getTypeBoolean()) error("Condicional do WHILE deve ser boolean");
-			}
+		| <IF> Condition() <THEN> Statements() ElseClause()
+		| <WHILE> Condition() <DO> Statements() <ENDWHILE>
 		| <UNTIL> Condition() <DO> Statements() <ENDUNTIL> 
-			{
-				if (t1 != STManager.getTypeBoolean()) error("Condicional do UNTIL deve ser boolean");
-			}
 		| <CALL> t = <IDENTIFIER> { id = r21(t); r25(id); } ArgList(id)
 		  )?
 	}
@@ -999,125 +1017,151 @@ SPECIAL_TOKEN:
 		( t = <PARETHESIS_OPEN> nPar = Arguments() <PARETHESIS_CLOSE>  {r24(id,nPar);} )?
 	}
 
-	int Arguments(): {int nArg = 1; int t1, t2;} {
-		Condition(t1) (<COMMA> Condition(t2) {nArg++;})*
-		// apenas marcando caso venha ser necessário pra checagem de tipo de parâmetro
+	int Arguments(): {int nArg = 1;} {
+		Condition() (<COMMA> Condition() {nArg++;})*
 		{ return nArg; }
 	}
 
 
 	//Expressões
-	void Condition(int tipo): {int t1, t2;} {	 
-		CompoundCondition(t1) ( <OR> CompoundCondition(t2) 
+	void Condition(): {Identifier t1[], t2[];} {
 		{
-			if (t1 == STManager.getTypeBoolean() && t2 == STManager.getTypeBoolean())
-				tipo = STManager.getTypeBoolean();
-			else error("Operador \\ exige boolean OR boolean ");	
+			t1 = new Identifier[1];
+			t2 = new Identifier[1];
 		}
-		)*
-			
+		CompoundCondition(t1)
+		{
+			if (!validLogicType(t1[0]))
+				error(ErrorConstants.ERR_LOGIC_OP_INVALID);		}
+		( <OR> CompoundCondition(t2) 
+		{
+			if (!(validLogicType(t1[0]) && validLogicType(t2[0])))
+				error("Operador \\ exige boolean OR boolean "); // TODO
+		}
+		)*			
 	}
 
-	void CompoundCondition(int tipo): {int t1, t2;} { 
+	void CompoundCondition(Identifier tipo[]): {Identifier t1[], t2[];} {
+		{
+			t1 = new Identifier[1];
+			t2 = new Identifier[1];
+		}
 		SimpleCondition(t1) ( <AND> SimpleCondition(t2)
 		{
-			if (t1 == STManager.getTypeBoolean() && t2 == STManager.getTypeBoolean())
-				tipo = STManager.getTypeBoolean();
-			else error("Operador & exige boolean AND boolean ");
+			if (validLogicType(t1[0]) && validLogicType(t2[0]))
+				validLogicType(tipo[0]);
+			else error("Operador & exige boolean AND boolean "); // TODO
 		}
 		)* 
 	}
 
-	void SimpleCondition(int tipo): {int t1, t2; Token t;} { 
+	void SimpleCondition(Identifier tipo[]): {Identifier t1[], t2[]; Token t;} {
+		{
+			t1 = new Identifier[1];
+			t2 = new Identifier[1];
+		}
 		Expression(t1) ( 
 		( t = <OP_EQUALS> | t = <OP_DIFFERENT> | t = <OP_GREATER_OR_EQUAL> | t = <OP_LESS_OR_EQUAL> | t = <OP_LESS> | t = <OP_GREATER> )
-		 
 		 Expression(t2)
-		 
-		{	if ((t1 == STManager.getTypeString() && t2 != STManager.getTypeString()) 
-				|| (t1 != STManager.getTypeString() && t2 == STManager.getTypeString())) 
-				error("Operador relacional que envolve string deve ser: string <relacional> string");
-			else if ((t != <OP_EQUALS> && t != <OP_DIFFERENT>) && 
-					(t1 == STManager.getTypeBoolean() || t2 == STManager.getTypeBoolean())) 
-					error("Apenas operadores \"=\" e \"!\" podem ser usados envolvendo booleans");
-			// É permitido usar bool com real ou inteiro (tratado na geração de código?):
-			// If 0 (ou 0.0) = false; else = true
-			else tipo = STManager.getTypeBoolean();	
+		{	if ((t1[0] == STManager.getTypeString() && t2[0] != STManager.getTypeString())
+				|| (t1[0] != STManager.getTypeString() && t2[0] == STManager.getTypeString())) 
+				error("Operador relacional que envolve string deve ser: string <relacional> string"); // TODO
+			else if ((t.kind != OP_EQUALS && t.kind != OP_DIFFERENT) && 
+					(validLogicType(t1[0]) || validLogicType(t2[0]))) 
+					error("Apenas operadores \"=\" e \"!\" podem ser usados envolvendo booleans"); // TODO
+			else tipo[0] = STManager.getTypeBoolean();	
 		}
 		)? 
 	}
 
-	void Expression(int tipo): {int t1, t2;} { 
+	void Expression(Identifier tipo[]): {Identifier t1[], t2[];} {
+		{
+			t1 = new Identifier[1];
+			t2 = new Identifier[1];
+		}
 		Term(t1) ( (<OP_ADD> | <OP_SUB> ) Term(t2)
 		{
-			if (t1 == STManager.getTypeInteger() && t2 == STManager.getTypeInteger())
-				tipo = STManager.getTypeInteger()
-			else if ((t1 == STManager.getTypeInteger() || t1 == getTypeReal()) && (t2 == STManager.getTypeInteger() || t2 == getTypeReal()))
-				tipo = getTypeReal();
-			else error("Operadores \"+\" e \"-\" pode apenas ser feito envolvendo inteiros ou reais");
+			if (t1[0] == STManager.getTypeInteger() && t2[0] == STManager.getTypeInteger())
+				tipo[0] = STManager.getTypeInteger();
+			else if ((t1[0] == STManager.getTypeInteger() || t1[0] == STManager.getTypeReal()) && (t2[0] == STManager.getTypeInteger() || t2[0] == STManager.getTypeReal()))
+				tipo[0] = STManager.getTypeReal();
+			else error("Operadores \"+\" e \"-\" pode apenas ser feito envolvendo inteiros ou reais"); // TODO
 		}		
 		)* 
 	}
 
-	void Term(int tipo): {int t1, t2; Token t;} { 
-		Unary(t1) ( ( t = <OP_MULT> | t = <OP_DIV> | t = <OP_MOD> ) Unary(t2) 
+	void Term(Identifier tipo[]): {Identifier t1[], t2[]; Token t;} {
 		{
-			if (t == <OP_MOD> && (t1 != STManager.getTypeInteger() || t2 != STManager.getTypeInteger())) error("Operador \"%\" espera apenas inteiros");
-			else if (t1 == STManager.getTypeInteger() && t2 == STManager.getTypeInteger())
-				tipo = STManager.getTypeInteger()
-			else if ((t1 == STManager.getTypeInteger() || t1 == STManager.getTypeReal()) && (t2 == STManager.getTypeInteger() || t2 == STManager.getTypeReal()))
-				tipo = STManager.getTypeReal();
-			else error("Operadores \"*\" e \"/\" pode apenas ser feito envolvendo inteiros ou reais");
+			t1 = new Identifier[1];
+			t2 = new Identifier[1];
+		}
+		{ boolean minus = false; }
+		Unary(t1,minus) ( ( t = <OP_MULT> | t = <OP_DIV> | t = <OP_MOD> )
+		{ minus = false; }
+		Unary(t2,minus)
+		{
+			if (t.kind == OP_MOD && (t1[0] != STManager.getTypeInteger() || t2[0] != STManager.getTypeInteger())) error("Operador \"%\" espera apenas inteiros"); // TODO
+			else if (t1[0] == STManager.getTypeInteger() && t2[0] == STManager.getTypeInteger())
+				tipo[0] = STManager.getTypeInteger();
+			else if ((t1[0] == STManager.getTypeInteger() || t1[0] == STManager.getTypeReal()) && (t2[0] == STManager.getTypeInteger() || t2[0] == STManager.getTypeReal()))
+				tipo[0] = STManager.getTypeReal();
+			else error("Operadores \"*\" e \"/\" pode apenas ser feito envolvendo inteiros ou reais"); // TODO
 		}	
 		)* 
 	}
 
-	void Unary(int tipo): {Token t = null; int t1; } { 
-		( ( t = <OP_ADD> | t = <OP_SUB> ) )? Factor(t, t1)
-		// (( ( <OP_ADD> | <OP_SUB> ) )? Unary(t1) | Factor(t1))
-		// fazer a adaptação pro acima, lembra do que  aprof falou da recursão nessa parte?
-
-		{
-			if (t1 == STManager.getTypeInteger() || t1 == STManager.getTypeReal) 
-					tipo = t1;
-			else error("Espera-se valor numérico");
-		} 
+	void Unary(Identifier tipo[], boolean minus): {Token t = null; Identifier t1[]; } {
+		{ t1 = new Identifier[1]; }
+		(	(
+				<OP_ADD> |
+				<OP_SUB> { minus = !minus; }
+			)
+			Unary(t1,minus) |
+			Factor(minus,t1)
+			{
+				if (t1[0] == STManager.getTypeInteger() || t1[0] == STManager.getTypeReal()) 
+						tipo[0] = t1[0];
+				else error("Espera-se valor numérico"); // TODO
+			}
+		)
 	}
 	
 	// Apenas faz atribuição de tipos (exceção not)
-	void Factor(Token sign, int tipo): {Token t; int nPar; int t1;} {
-		Bool() {tipo = BOOLEAN;} |
-		t = <IDENTIFIER> { Identifier id = r21(t); r22a(id);}
-		( <PARETHESIS_OPEN> {r22(id);} nPar =  Arguments() {r24(id,nPar);} <PARETHESIS_CLOSE> )? VariableAux(id, t1) 
-			{
-				tipo = t1;
-			}
-		| ( t = <INTEGER_CONST> 
-			{
-				r26(t,sign);
-				tipo = STManager.getTypeInteger();
-			} 
-		| t = <REAL_CONST> 
-			{
-				r27(t,sign);
-				tipo = STManager.getTypeReal();
-			} 
-		  )
-
-		| <STRING_CONST> 
-			{
-				// não tem regra semântica pra quando tem string_const?
-				tipo = STManager.getTypeString();
-			}
-		| <NOT> Factor(t1)  
-			{
-				if (t1 == STManager.getTypeString()) error("Esperava-se boolean ou valor convertivel (numérico)"); 
-				else tipo = STManager.getTypeBoolean();
-			}
-		| <PARETHESIS_OPEN> Condition(t1) <PARETHESIS_CLOSE> 
-			{
-				tipo = t1;
-			}
+	void Factor(boolean minus, Identifier tipo[]): {Token t; int nPar; Identifier t1[];} {
+		{ t1 = new Identifier[2]; }
+		(			Bool() {tipo[0] = STManager.getTypeBoolean();} |
+			t = <IDENTIFIER> { Identifier id = r21(t); r22a(id);}
+			( <PARETHESIS_OPEN> {r22(id);} nPar =  Arguments() {r24(id,nPar);} <PARETHESIS_CLOSE> )? VariableAux(id, t1) 
+				{
+					tipo[0] = t1[0];
+				}
+			| ( t = <INTEGER_CONST> 
+				{
+					r26(t,minus);
+					tipo[0] = STManager.getTypeInteger();
+				} 
+			| t = <REAL_CONST> 
+				{
+					r26r(t,minus);
+					tipo[0] = STManager.getTypeReal();
+				} 
+			  )
+	
+			| <STRING_CONST> 
+				{
+					tipo[0] = STManager.getTypeString();
+				}
+			| <NOT> Factor(false,t1)  
+				{
+					if (!validLogicType(t1[0]))
+						error("Esperava-se boolean ou valor convertivel (numérico)"); // TODO
+					else tipo[0] = STManager.getTypeBoolean();
+				}
+			| <PARETHESIS_OPEN> Condition() <PARETHESIS_CLOSE> 
+				{
+					tipo[0] = STManager.getTypeBoolean();
+				}
+		)
 	}
 
 	void Bool(): {} { 
@@ -1125,19 +1169,19 @@ SPECIAL_TOKEN:
 	}
 
 	// Apenas faz atribuição de tipos
-	ArrayList<Identifier> Variable(int tipo): {Token t; Identifier id;
-		ArrayList<Identifier> ids = new ArrayList<Identifier>(); int t1;} {
-		t = <IDENTIFIER> {id = r21(t); ids.add(id);}
-		id = VariableAux(id, t1) { if (id != null) ids.add(id); }
-		/* definir tipo como o tipo da variável resultante~Não sei como vc tratou isso, então deixarei pra vc */
+	ArrayList<Identifier> Variable(Identifier tipo[]): {Token t; Identifier id;
+		ArrayList<Identifier> ids = new ArrayList<Identifier>();} {
+		t = <IDENTIFIER> {id = r21(t); ids.add(id); tipo[0] = id.getType(); }
+		id = VariableAux(id, tipo) { if (id != null) ids.add(id); }
 		{ return ids; }
 	}
 
 	// Apenas faz atribuição de tipos
-	Identifier VariableAux(Identifier id; int tipo): {Token t; Identifier aux = null;} {
-		( <DOT> { rVP(id); } t = <IDENTIFIER> {aux = r21a(id,t);}
-		| <BRACKET_OPEN>  Expression() <BRACKET_CLOSE> )*
-		/* definir tipo como o tipo da variável resultante~Não sei como vc tratou isso, então deixarei pra vc */
+	Identifier VariableAux(Identifier id, Identifier tipo[]): {Token t; Identifier aux = null;} {
+		{
+			Identifier t1[] = new Identifier[1];		}
+		( <DOT> { rVP(id); } t = <IDENTIFIER> {aux = r21a(id,t); tipo[0] = aux.getType();}
+		| <BRACKET_OPEN> Expression(t1) { testInteger(t1[0]); } <BRACKET_CLOSE> )*
 		{ return aux; }
 	}
 	void Argument(): {} { Condition() }
