@@ -298,6 +298,24 @@ public class JASON {
 		}
 	}
 
+	public void r26i(Token t, boolean minus) throws ParseException {
+		Integer i = null;
+		try {
+			i = new Integer(t.image);
+			if (minus)
+				i = -i;
+		} catch (Exception e) {
+			r26r(t,minus);
+			return;
+		}
+		if (i<-32768 || i>32767) {
+			errorCode = ErrorConstants.ERR_INT_OVERFLOW;
+			errorParams = new ArrayList<String>();
+			errorParams.add(t.image);
+			throw generateParseException();
+		}
+	}
+
 	public void r26r(Token t, boolean minus) throws ParseException {
 		Double d = null;
 		try {
@@ -312,6 +330,15 @@ public class JASON {
 		}
 		if (d<-2147483648d || d>2147483647d) {
 			errorCode = ErrorConstants.ERR_REAL_OVERFLOW;
+			errorParams = new ArrayList<String>();
+			errorParams.add(t.image);
+			throw generateParseException();
+		}
+	}
+
+	public void r26s(Token t) throws ParseException {
+		if (t.image.length() >256) {
+			errorCode = ErrorConstants.ERR_STRING_OVERFLOW;
 			errorParams = new ArrayList<String>();
 			errorParams.add(t.image);
 			throw generateParseException();
@@ -871,12 +898,13 @@ SPECIAL_TOKEN:
 	}
 
 	String Values(Identifier id, Identifier type[], String value[]): {Token t1 = null; Token t2;} {
-		( ( t1 = <OP_SUB> )?
-				(  t2 = <INTEGER_CONST>
+		{ boolean minus = false;}
+		( ( t1 = <OP_SUB> { minus = true;} )?
+				( t2 = <INTEGER_CONST> { r26(t2,minus); }
 				{type[0] = STManager.getTypeInteger();value[0]=t2.image;}
-				| t2 = <REAL_CONST>
+				| t2 = <REAL_CONST> { r26r(t2,minus); }
 				{type[0] = STManager.getTypeReal();value[0]=t2.image;})
-				| t2 = <STRING_CONST>
+				| t2 = <STRING_CONST> { r26s(t2); }
 				{type[0] = STManager.getTypeString();value[0]=t2.image;})
 		{
 			String s = "";
@@ -892,11 +920,12 @@ SPECIAL_TOKEN:
 		RecordSpecification(id) ) <SEMICOLON> )+ 
 	}
 
-	void ArraySpecification(Identifier id): {Identifier dt;Token t;int minusCount = 0;} { 
+	void ArraySpecification(Identifier id): {Identifier dt;Token t;int minusCount = 0;} {
 		<ARRAY> {r10(id);}
 		dt = DataType() <BRACKET_OPEN>
-		( t = <INTEGER_CONST> {r12(id,t,dt,0);}
-		| (<OP_SUB> {minusCount++;} | <OP_ADD> )+ t = <INTEGER_CONST> {r12(id,t,dt,minusCount);}
+		( t = <INTEGER_CONST> { r26i(t,false); } {r12(id,t,dt,0);}
+		| (<OP_SUB> {minusCount++;} |
+		  <OP_ADD> )+ t = <INTEGER_CONST> { r26i(t,false); } {r12(id,t,dt,minusCount);}
 		)
 		<BRACKET_CLOSE>
 	}
@@ -985,7 +1014,7 @@ SPECIAL_TOKEN:
 		<SEMICOLON>
 		{ return id; }
 	}
-	void FunctionBlock(): {} { <BEGIN> ( Statement() <SEMICOLON> )+  <RETURN> <PARETHESIS_OPEN> Condition() <PARETHESIS_CLOSE> <END> }
+	void FunctionBlock(): {} { <BEGIN> ( Statement() <SEMICOLON> )+  <RETURN> <PARETHESIS_OPEN> Condition(null) <PARETHESIS_CLOSE> <END> }
 
 	//Comandos
 
@@ -999,8 +1028,8 @@ SPECIAL_TOKEN:
 		( <READ> ids = Variable(t1) 
 			{ 
 				r27(ids); 
-				if (t1 == STManager.getTypeBoolean()) 
-					error("Boolean não pode ser lido");
+				if (t1[0] == STManager.getTypeBoolean()) 
+					error("Boolean não pode ser lido"); // TODO
 			}
 		| <SET> ids = Variable(t1) { r27(ids); } <OP_EQUALS> Expression(t2)
 			{
@@ -1011,18 +1040,18 @@ SPECIAL_TOKEN:
 		| <WRITE> Variable(t1) 
 		| <IF> Condition(t1) <THEN> Statements() ElseClause()
 			{
-				if (t1 != STManager.getTypeBoolean()) 
-					error("Esperava-se um Boolean em IF <condition>");
+				if (t1[0] != STManager.getTypeBoolean()) 
+					error("Esperava-se um Boolean em IF <condition>"); // TODO
 			}
 		| <WHILE> Condition(t1) <DO> Statements() <ENDWHILE>
 			{
-				if (t1 != STManager.getTypeBoolean()) 
-					error("Esperava-se um Boolean em WHILE <condition>");
+				if (t1[0] != STManager.getTypeBoolean()) 
+					error("Esperava-se um Boolean em WHILE <condition>"); // TODO
 			}
 		| <UNTIL> Condition(t1) <DO> Statements() <ENDUNTIL> 
 			{
-				if (t1 != STManager.getTypeBoolean()) 
-					error("Esperava-se um Boolean em UNTIL <condition>");
+				if (t1[0] != STManager.getTypeBoolean()) 
+					error("Esperava-se um Boolean em UNTIL <condition>"); // TODO
 			}
 		| <CALL> t = <IDENTIFIER> { id = r21(t); r25(id); } ArgList(id)
 		  )?
@@ -1037,14 +1066,15 @@ SPECIAL_TOKEN:
 	}
 
 	int Arguments(): {int nArg = 1;} {
-		Condition() (<COMMA> Condition() {nArg++;})*
+		Condition(null) (<COMMA> Condition(null) {nArg++;})*
 		{ return nArg; }
 	}
 
 
 	//Expressões
-	void Condition(Identifier tipo): {Identifier t1[], t2[];} {
+	void Condition(Identifier tipo[]): {Identifier t1[], t2[];} {
 		{
+			boolean c2 = false;
 			t1 = new Identifier[1];
 			t2 = new Identifier[1];
 		}
@@ -1053,20 +1083,21 @@ SPECIAL_TOKEN:
 			if (!validLogicType(t1[0]))
 				error(ErrorConstants.ERR_LOGIC_OP_INVALID);
 		}
-		( <OR> CompoundCondition(t2) 
+		( <OR> CompoundCondition(t2)
 		{
 			if (!(validLogicType(t1[0]) && validLogicType(t2[0])))
 				error("Operador \\ exige boolean OR boolean "); // TODO
+			c2 = true;
 		}
 		)*
 		{
-			if (t2 == null) tipo[0] = t1[0];
-			// Isso deve ser feito quando * = 0 
+			if (!c2 && tipo!=null) tipo[0] = t1[0]; 
 		}	
 	}
 
 	void CompoundCondition(Identifier tipo[]): {Identifier t1[], t2[];} {
 		{
+			boolean c2 = false;
 			t1 = new Identifier[1];
 			t2 = new Identifier[1];
 		}
@@ -1075,16 +1106,17 @@ SPECIAL_TOKEN:
 			if (validLogicType(t1[0]) && validLogicType(t2[0]))
 				validLogicType(tipo[0]);
 			else error("Operador & exige boolean AND boolean "); // TODO
+			c2 = true;
 		}
 		)* 
 		{
-			if (t2 == null) tipo[0] = t1[0];
-			// Isso deve ser feito quando * = 0 
+			if (!c2) tipo[0] = t1[0];
 		}	
 	}
 
 	void SimpleCondition(Identifier tipo[]): {Identifier t1[], t2[]; Token t;} {
 		{
+			boolean c2 = false;
 			t1 = new Identifier[1];
 			t2 = new Identifier[1];
 		}
@@ -1097,12 +1129,12 @@ SPECIAL_TOKEN:
 			else if ((t.kind != OP_EQUALS && t.kind != OP_DIFFERENT) && 
 					(validLogicType(t1[0]) || validLogicType(t2[0]))) 
 					error("Apenas operadores \"=\" e \"!\" podem ser usados envolvendo booleans"); // TODO
-			else tipo[0] = STManager.getTypeBoolean();	
+			else tipo[0] = STManager.getTypeBoolean();
+			c2 = true;	
 		}
-		)? 
+		)?
 		{
-			if (t2 == null) tipo[0] = t1[0];
-			// Isso deve ser feito quando ? não for feito 
+			if (!c2) tipo[0] = t1[0]; 
 		}	
 	}
 
@@ -1160,7 +1192,7 @@ SPECIAL_TOKEN:
 	
 	// Apenas faz atribuição de tipos (exceção not)
 	void Factor(boolean minus, Identifier tipo[]): {Token t; int nPar; Identifier t1[];} {
-		{ t1 = new Identifier[2]; }
+		{ t1 = new Identifier[1]; }
 		(
 			Bool() {tipo[0] = STManager.getTypeBoolean();} |
 			t = <IDENTIFIER> { Identifier id = r21(t); r22a(id);}
@@ -1180,8 +1212,9 @@ SPECIAL_TOKEN:
 				} 
 			  )
 	
-			| <STRING_CONST> 
+			| t = <STRING_CONST> 
 				{
+					{ r26s(t); }
 					tipo[0] = STManager.getTypeString();
 				}
 			| <NOT> Factor(false,t1)  
@@ -1218,7 +1251,7 @@ SPECIAL_TOKEN:
 		| <BRACKET_OPEN> Expression(t1) { testInteger(t1[0]); } <BRACKET_CLOSE> )*
 		{ return aux; }
 	}
-	void Argument(): {} { Condition() }
+	void Argument(): {} { Condition(null) }
 
 	TOKEN_MGR_DECLS :
 	{
