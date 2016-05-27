@@ -31,7 +31,9 @@ public class JASON {
 	Identifier proc_id = null;
 	int classe_t;
 
-	public void error(String s) // REMOVER TODO	{	}
+	public void error(String s) // REMOVER TODO
+	{
+	}
 
 	public void error(int error) throws ParseException
 	{
@@ -994,7 +996,12 @@ SPECIAL_TOKEN:
 			t1 = new Identifier[1];
 			t2 = new Identifier[1];
 		} 
-		( <READ> ids = Variable(t1) { r27(ids); }
+		( <READ> ids = Variable(t1) 
+			{ 
+				r27(ids); 
+				if (t1 == STManager.getTypeBoolean()) 
+					error("Boolean não pode ser lido");
+			}
 		| <SET> ids = Variable(t1) { r27(ids); } <OP_EQUALS> Expression(t2)
 			{
 				if (t1[0] != t2[0]) {
@@ -1002,9 +1009,21 @@ SPECIAL_TOKEN:
 				}  
 			}
 		| <WRITE> Variable(t1) 
-		| <IF> Condition() <THEN> Statements() ElseClause()
-		| <WHILE> Condition() <DO> Statements() <ENDWHILE>
-		| <UNTIL> Condition() <DO> Statements() <ENDUNTIL> 
+		| <IF> Condition(t1) <THEN> Statements() ElseClause()
+			{
+				if (t1 != STManager.getTypeBoolean()) 
+					error("Esperava-se um Boolean em IF <condition>");
+			}
+		| <WHILE> Condition(t1) <DO> Statements() <ENDWHILE>
+			{
+				if (t1 != STManager.getTypeBoolean()) 
+					error("Esperava-se um Boolean em WHILE <condition>");
+			}
+		| <UNTIL> Condition(t1) <DO> Statements() <ENDUNTIL> 
+			{
+				if (t1 != STManager.getTypeBoolean()) 
+					error("Esperava-se um Boolean em UNTIL <condition>");
+			}
 		| <CALL> t = <IDENTIFIER> { id = r21(t); r25(id); } ArgList(id)
 		  )?
 	}
@@ -1024,7 +1043,7 @@ SPECIAL_TOKEN:
 
 
 	//Expressões
-	void Condition(): {Identifier t1[], t2[];} {
+	void Condition(Identifier tipo): {Identifier t1[], t2[];} {
 		{
 			t1 = new Identifier[1];
 			t2 = new Identifier[1];
@@ -1032,13 +1051,18 @@ SPECIAL_TOKEN:
 		CompoundCondition(t1)
 		{
 			if (!validLogicType(t1[0]))
-				error(ErrorConstants.ERR_LOGIC_OP_INVALID);		}
+				error(ErrorConstants.ERR_LOGIC_OP_INVALID);
+		}
 		( <OR> CompoundCondition(t2) 
 		{
 			if (!(validLogicType(t1[0]) && validLogicType(t2[0])))
 				error("Operador \\ exige boolean OR boolean "); // TODO
 		}
-		)*			
+		)*
+		{
+			if (t2 == null) tipo[0] = t1[0];
+			// Isso deve ser feito quando * = 0 
+		}	
 	}
 
 	void CompoundCondition(Identifier tipo[]): {Identifier t1[], t2[];} {
@@ -1053,6 +1077,10 @@ SPECIAL_TOKEN:
 			else error("Operador & exige boolean AND boolean "); // TODO
 		}
 		)* 
+		{
+			if (t2 == null) tipo[0] = t1[0];
+			// Isso deve ser feito quando * = 0 
+		}	
 	}
 
 	void SimpleCondition(Identifier tipo[]): {Identifier t1[], t2[]; Token t;} {
@@ -1072,6 +1100,10 @@ SPECIAL_TOKEN:
 			else tipo[0] = STManager.getTypeBoolean();	
 		}
 		)? 
+		{
+			if (t2 == null) tipo[0] = t1[0];
+			// Isso deve ser feito quando ? não for feito 
+		}	
 	}
 
 	void Expression(Identifier tipo[]): {Identifier t1[], t2[];} {
@@ -1129,7 +1161,8 @@ SPECIAL_TOKEN:
 	// Apenas faz atribuição de tipos (exceção not)
 	void Factor(boolean minus, Identifier tipo[]): {Token t; int nPar; Identifier t1[];} {
 		{ t1 = new Identifier[2]; }
-		(			Bool() {tipo[0] = STManager.getTypeBoolean();} |
+		(
+			Bool() {tipo[0] = STManager.getTypeBoolean();} |
 			t = <IDENTIFIER> { Identifier id = r21(t); r22a(id);}
 			( <PARETHESIS_OPEN> {r22(id);} nPar =  Arguments() {r24(id,nPar);} <PARETHESIS_CLOSE> )? VariableAux(id, t1) 
 				{
@@ -1157,9 +1190,9 @@ SPECIAL_TOKEN:
 						error("Esperava-se boolean ou valor convertivel (numérico)"); // TODO
 					else tipo[0] = STManager.getTypeBoolean();
 				}
-			| <PARETHESIS_OPEN> Condition() <PARETHESIS_CLOSE> 
+			| <PARETHESIS_OPEN> Condition(t1) <PARETHESIS_CLOSE> 
 				{
-					tipo[0] = STManager.getTypeBoolean();
+					tipo[0] = t1[0];
 				}
 		)
 	}
@@ -1179,7 +1212,8 @@ SPECIAL_TOKEN:
 	// Apenas faz atribuição de tipos
 	Identifier VariableAux(Identifier id, Identifier tipo[]): {Token t; Identifier aux = null;} {
 		{
-			Identifier t1[] = new Identifier[1];		}
+			Identifier t1[] = new Identifier[1];
+		}
 		( <DOT> { rVP(id); } t = <IDENTIFIER> {aux = r21a(id,t); tipo[0] = aux.getType();}
 		| <BRACKET_OPEN> Expression(t1) { testInteger(t1[0]); } <BRACKET_CLOSE> )*
 		{ return aux; }
