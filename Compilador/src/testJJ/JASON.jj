@@ -28,78 +28,160 @@ public class JASON {
 	HashMap<String,String> definitions;
 	int offset = 0;
 
-	Identifier proc_id = null;
 	int classe_t;
 
-	public void error(int error) throws ParseException
-	{
+	public void error(int error)  {
+		error(error, generateParseException());
+	}
+
+	public void error(int error, ParseException e) {
+//		e.printStackTrace();
 		errorCode = error;
-		throw generateParseException();
+		boolean printed = true;
+		
+		switch (errorCode)
+		{
+		case ErrorConstants.ERR_CANT_SET: 			errorMessage += "Identificador ("+					errorParams.get(0)+					") na linha " + e.currentToken.beginLine + ", coluna "					+ e.currentToken.beginColumn + ", não pode ser modificado.";			break;
+		case ErrorConstants.ERR_INT_OVERFLOW: 
+			errorMessage += "Valor inteiro ("+
+					errorParams.get(0)+
+					") na linha " + e.currentToken.beginLine + ", coluna "
+					+ e.currentToken.beginColumn +
+					", não é valido. Inteiros devem estar entre -32768 e 32767.";
+			break;
+		case ErrorConstants.ERR_REAL_OVERFLOW: 
+			errorMessage += "Valor real ("+
+					errorParams.get(0)+
+					") na linha " + e.currentToken.beginLine + ", coluna "
+					+ e.currentToken.beginColumn +
+					", não é valido. Reais devem estar entre -32768 e 32767.";
+			break;
+//		case ErrorConstants.ERR_LOGIC_OP_INVALID: //			errorMessage += "Valor lógico inválido na linha " +//			e.currentToken.beginLine + ".";//			break;//		case ErrorConstants.ERR_OP_MOD_INT_EXPECED: //			errorMessage += "Operador \"%\" espera apenas inteiros, na linha " +//			e.currentToken.beginLine + ".";//			break;//		case ErrorConstants.ERR_BOOLEAN_READ: //			errorMessage += "Variável booleana não pode ser lida, na linha " +//			e.currentToken.beginLine + ".";//			break;//		case ErrorConstants.ERR_STRING_OP: //			errorMessage += "Operador relacional que envolve string "+//			"deve ser: string <relacional> string, na linha " +//			e.currentToken.beginLine + ".";//			break;//		case ErrorConstants.ERR_BOOLEAN_OP://			errorMessage += "Apenas operadores \"=\" e \"!\" podem ser "+//			"usados envolvendo booleans, na linha " +//			e.currentToken.beginLine + ".";//			break;//		case ErrorConstants.ERR_NUM_OP://			errorMessage += "Operadores \"+\", \"-\", \"*\"ou \"\\\" "+//			"podem apenas ser usados "+//			"envolvendo inteiros ou reais, na linha " +//			e.currentToken.beginLine + ".";//			break;//		case ErrorConstants.ERR_NUM_EXPECTED://			errorMessage += "Valor numérico esperado, na linha " +//			e.currentToken.beginLine + ".";//			break;//		case ErrorConstants.ERR_INT_BOOL_EXPECTED://			errorMessage += "Valor inteiro ou booleano esperado, na linha " +//			e.currentToken.beginLine + ".";//			break;//		case ErrorConstants.ERR_RETURN_INCOMPATIBLE://			errorMessage += "Tipo de retorno incompatível, na linha " +//			e.currentToken.beginLine + ".";//			break;//		case ErrorConstants.ERR_INCOMPATIBLE_TYPES: //			errorMessage += "Tipos incompativeis na linha " +//			e.currentToken.beginLine + ".";//			break;//		case ErrorConstants.ERR_BOOLEAN_EXPECTED: //			errorMessage += "Boolean esperado, na linha " +//			e.currentToken.beginLine + ".";//			break;
+		case ErrorConstants.ERR_DUPLICATE_IDENTIFIER: 
+			errorMessage += "Identificador duplicado ("+
+					errorParams.get(0)+
+					") na linha " + e.currentToken.beginLine + ", coluna "
+					+ e.currentToken.beginColumn;
+			break;
+		case ErrorConstants.ERR_IDENTIFIER_NOT_DECLARED: 
+			errorMessage += "Identificador não declarado ("+
+					errorParams.get(0)+
+					") na linha " + e.currentToken.beginLine + ", coluna "
+					+ e.currentToken.beginColumn;
+			break;
+		case ErrorConstants.ERR_FUNCTION_NOT_DECLARED: 
+			errorMessage += "Função não declarada ("+
+					errorParams.get(0)+
+					") na linha " + e.currentToken.beginLine + ", coluna "
+					+ e.currentToken.beginColumn;
+			break;
+		case ErrorConstants.ERR_TYPE_NOT_DECLARED: 
+			errorMessage += "Tipo não declarado ("+
+					errorParams.get(0)+
+					") na linha " + e.currentToken.beginLine + ", coluna "
+					+ e.currentToken.beginColumn;
+			break;
+//		case ErrorConstants.ERR_REF_PARAM_READ_ONLY: //			errorMessage += "Identificador ("+//					errorParams.get(0)+//					") na linha " + e.currentToken.beginLine +//					" não pode ser passado por referência";//			break;//		case ErrorConstants.ERR_REF_PARAM_INCOMPATIBLE: //			errorMessage += "Parâmetro na linha " + e.currentToken.beginLine +//					" incompatível.";//			break;
+		case ErrorConstants.ERR_N_PAR_INCOMPATICLE: 
+			errorMessage += "Incompatibilidade no número "+
+			"de parâmetros na linha " + e.currentToken.beginLine + ", coluna "
+					+ e.currentToken.beginColumn;
+			break;
+//		case ErrorConstants.ERR_FPVC_NOT_DECLARED: //			errorMessage += "Função, parâmetro, variável ou constante não declarada ("+//					errorParams.get(0)+//					") na linha " + e.currentToken.beginLine + ", coluna "//					+ e.currentToken.beginColumn;//			break;//		case ErrorConstants.ERR_VP_NOT_DECLARED: //			errorMessage += "Parâmetro ou variável não declarada ("+//					errorParams.get(0)+//					") na linha " + e.currentToken.beginLine + ", coluna "//					+ e.currentToken.beginColumn;//			break;
+		case ErrorConstants.ERR_NEGATIVE_ARRAY: 
+			errorMessage += "Array de tamanho não positivo "+
+				"na linha " +
+				errorTokenParams.get(0).beginLine + ", coluna "+
+				errorTokenParams.get(0).beginColumn;
+			break;
+		default:
+			printed = false;
+		}
+		if (printed)
+			errorMessage += "\n--------\n";
 	}
 
 	public boolean validLogicType(Identifier id) {
+		if (id==null)
+			return false;
 		if (id == STManager.getTypeBoolean() ||
 			id == STManager.getTypeInteger())
 			return true;
 		return false;
 	}
 
-	public void testInteger(Identifier id) throws ParseException {
+	public void testInteger(Identifier id) {
 		if (id != STManager.getTypeInteger())
-			error(ErrorConstants.ERR_INT_EXPECED);
+			error(ErrorConstants.ERR_INT_EXPECED, generateParseException());
 	}
 
 	public void testParamReference(Identifier id,
-				Identifier varParam, int nArg) throws ParseException {
+				Identifier varParam, int nArg) {
+		if (id==null)
+			return;
 		if (varParam == null) {
-			errorCode = ErrorConstants.ERR_REF_PARAM_INCOMPATIBLE;
-			throw generateParseException();
+			error(ErrorConstants.ERR_REF_PARAM_INCOMPATIBLE, generateParseException());
 		}
-		if (id.getParameters().get(nArg-1).getTransferType() == SymbolTableManager.TRANSFER_REF) {
+		else if (id.getParameters().size()==0)
+			return;
+		else if (id.getParameters().get(nArg-1).getTransferType() == SymbolTableManager.TRANSFER_REF) {
 			if (varParam.getCategory() != STManager.CATEGORY_VAR &&
 				varParam.getCategory() != STManager.CATEGORY_PARAM)			{
-				errorCode = ErrorConstants.ERR_REF_PARAM_READ_ONLY;
 				errorParams = new ArrayList<String>();
 				errorParams.add(varParam.getID());
-				throw generateParseException();			}		}	}
+				error(ErrorConstants.ERR_REF_PARAM_READ_ONLY,generateParseException());			}		}	}
 
-	public Identifier createIdentifier(Token t) throws ParseException {
+	/*
+	Cria identificador na tabela de símbolos, lança erro se for duplicado.
+	*/
+	public Identifier createIdentifier(Token t) {
 		Identifier id = new Identifier();
 		id.setID(t.image.toUpperCase());
 		id.setLevel(currentLevel);
 
 		if (!STManager.addSymbol(id)) {
-			errorCode = ErrorConstants.ERR_DUPLICATE_IDENTIFIER;
 			errorParams = new ArrayList<String>();
 			errorParams.add(id.getID());
-			throw generateParseException();
+			error(ErrorConstants.ERR_DUPLICATE_IDENTIFIER,generateParseException());
 		}
 		return id;
 	}
 
+	/*
+	Define categoria, tipo e valor de identificador.
+	*/
 	public void r0a(Identifier id, int cat, Identifier type, String value) {
+		if (id==null)
+			return;
 		id.setCategory(cat);
 		id.setType(type);
 		id.setValue(value);
 	}
 
-	public Identifier r1(Token t) throws ParseException {
+	/*
+	Cria identificador na tabela de símbolos, lança erro se for duplicado.
+	Define categoria como "tipo".
+	*/
+	public Identifier r1(Token t) {
 		Identifier id = new Identifier();
 		id.setID(t.image.toUpperCase());
 		id.setLevel(currentLevel);
 		id.setCategory(SymbolTableManager.CATEGORY_TYPE);
 
 		if (!STManager.addSymbol(id)) {
-			errorCode = ErrorConstants.ERR_DUPLICATE_IDENTIFIER;
 			errorParams = new ArrayList<String>();
 			errorParams.add(id.getID());
-			throw generateParseException();
+			error(ErrorConstants.ERR_DUPLICATE_IDENTIFIER,generateParseException());
 		}
 
 		return id;
 	}
 
-	public void r3(Token t, Identifier type) throws ParseException {
+	/*
+	Cria identificador na tabela de símbolos, lança erro se for duplicado.
+	Define categoria como "variavel" e atualiza seu tipo.
+	*/
+	public void r3(Token t, Identifier type) {
 		Identifier id = new Identifier();
 		id.setID(t.image.toUpperCase());
 		id.setLevel(currentLevel);
@@ -107,267 +189,345 @@ public class JASON {
 		id.setCategory(SymbolTableManager.CATEGORY_VAR);
 
 		if (!STManager.addSymbol(id)) {
-			errorCode = ErrorConstants.ERR_DUPLICATE_IDENTIFIER;
 			errorParams = new ArrayList<String>();
 			errorParams.add(id.getID());
-			throw generateParseException();
+			error(ErrorConstants.ERR_DUPLICATE_IDENTIFIER,generateParseException());
 		}
 	}
-
-	public Identifier r5(Token t) throws ParseException {
+	
+	/*
+	Cria identificador na tabela de símbolos, lança erro se for duplicado.
+	Define categoria como "procedimento".
+	*/
+	public Identifier r5(Token t) {
 		Identifier id = new Identifier();
 		id.setID(t.image.toUpperCase());
 		id.setLevel(currentLevel);
 		id.setCategory(SymbolTableManager.CATEGORY_PROCEDURE);
 		if (!STManager.addSymbol(id)) {
-			errorCode = ErrorConstants.ERR_DUPLICATE_IDENTIFIER;
 			errorParams = new ArrayList<String>();
 			errorParams.add(id.getID());
-			throw generateParseException();
+			error(ErrorConstants.ERR_DUPLICATE_IDENTIFIER,generateParseException());
 		}
 		return id;
 	}
 
-	public Identifier r6(Token t) throws ParseException {
+	/*
+	Cria identificador na tabela de símbolos, lança erro se for duplicado.
+	Define categoria como "função".
+	*/
+	public Identifier r6(Token t) {
 		Identifier id = new Identifier();
 		id.setID(t.image.toUpperCase());
 		id.setLevel(currentLevel);
 		id.setCategory(SymbolTableManager.CATEGORY_FUNCTION);
 		if (!STManager.addSymbol(id)) {
-			errorCode = ErrorConstants.ERR_DUPLICATE_IDENTIFIER;
 			errorParams = new ArrayList<String>();
 			errorParams.add(id.getID());
-			throw generateParseException();
+			error(ErrorConstants.ERR_DUPLICATE_IDENTIFIER,generateParseException());
 		}
 		return id;
 	}
 
+	/*
+	Define tipo do identificador.
+	*/
 	public void r7(Identifier id, Identifier type){
+		if (id==null)
+			return;
 		id.setType(type);
 	}
 
-	public Identifier r7a(Token t) throws ParseException {
+	/*
+	Busca identificador de categoria "tipo", lança erro se não foi declarado
+	ou se não for um "tipo".
+	*/
+	public Identifier r7a(Token t) {
 		Identifier id = STManager.getIdentifier(t.image);
 		if (id == null) {
-			errorCode = ErrorConstants.ERR_TYPE_NOT_DECLARED;
 			errorParams = new ArrayList<String>();
 			errorParams.add(t.image);
-			throw generateParseException();
+			error(ErrorConstants.ERR_TYPE_NOT_DECLARED,generateParseException());
 		}
-		if (id.getCategory() != SymbolTableManager.CATEGORY_TYPE) {
-			errorCode = ErrorConstants.ERR_TYPE_NOT_DECLARED;
+		else if (id.getCategory() != SymbolTableManager.CATEGORY_TYPE) {
 			errorParams = new ArrayList<String>();
 			errorParams.add(id.getID());
-			throw generateParseException();
+			error(ErrorConstants.ERR_TYPE_NOT_DECLARED,generateParseException());
 		}
 		return id;
 	}
 
+	/*
+	Remove símbolos do último nível da tabela de símbolos.
+	*/
 	public void r8(Identifier id) {
 		STManager.removeLevel(currentLevel);
 		currentLevel--;
 	}
 
-	public void r10(Identifier id) throws ParseException {
+	/*
+	Define tipo do identificador como Array.
+	*/
+	public void r10(Identifier id) {
+		if (id==null)
+			return;
 		id.setType(STManager.getTypeArray());
 	}
 
-	public void r10a(Identifier id) throws ParseException {
+	/*
+	Define tipo do identificador como Record.
+	*/
+	public void r10a(Identifier id) {
+		if (id==null)
+			return;
 		id.setType(STManager.getTypeRecord());
 	}
 
-	public void r12(Identifier id, Token t, Identifier dt, int minusCount) throws ParseException {
+	/*
+	Define o tamanho, tipo e número de bytes do array,
+	lança erro se o tamanho não for positivo.
+	*/
+	public void r12(Identifier id, Token t, Identifier dt, int minusCount) {
+		if (id==null || dt==null)
+			return;
 		int size = new Integer(t.image);
 		if (size<=0 || minusCount%2!=0) {
-			errorCode = ErrorConstants.ERR_NEGATIVE_ARRAY;
 			errorTokenParams = new ArrayList<Token>();
 			errorTokenParams.add(t);
-			throw generateParseException();
+			error(ErrorConstants.ERR_NEGATIVE_ARRAY,generateParseException());
 		}
 		id.setArraySize(size);
 		id.setArrayType(dt);
 		id.setNBytes(dt.getNBytes()*id.getArraySize());
 	}
 
+	/*
+	Busca campo declarado no Record e returna true ou false
+	se foi ou não encontrado.
+	*/
 	public boolean arrayContainsID(ArrayList<Identifier> list, String name) {
 		for (int i=0;i<list.size();i++)		{			if (list.get(i).getID().toUpperCase().equals(name.toUpperCase()))
 				return true;
 		}
 		return false;	}
 
-	public void r12a(Identifier id, Token t, Identifier dt) throws ParseException {
+	/*
+	Adiciona campo no Record, lança erro se for duplicado.
+	Define categoria como "variavel" e atualiza seu tipo e número de bytes.
+	*/
+	public void r12a(Identifier id, Token t, Identifier dt) {
+		if (id==null || dt==null)
+			return;
 		Identifier aux = new Identifier();
 		aux.setID(t.image.toUpperCase());
 		aux.setLevel(currentLevel);
 		aux.setType(dt);
-		id.setNBytes(dt.getNBytes());
 		aux.setCategory(SymbolTableManager.CATEGORY_VAR);
 		
 		id.setNBytes(id.getNBytes()+dt.getNBytes());
 		if (arrayContainsID(id.getRecordTypes(),aux.getID()))		{
-			errorCode = ErrorConstants.ERR_DUPLICATE_IDENTIFIER;
 			errorParams = new ArrayList<String>();
 			errorParams.add(aux.getID());
-			throw generateParseException();		}
+			error(ErrorConstants.ERR_DUPLICATE_IDENTIFIER,generateParseException());
+		}
 		id.getRecordTypes().add(aux);
 	}
 
-	public void r13(Identifier id) {
-		proc_id = id;
-	}
-
+	/*
+	Define classe de transferência atual como "Valor".
+	*/
 	public void r14() {
 		classe_t = SymbolTableManager.TRANSFER_VALUE;
 	}
 
+	/*
+	Define classe de transferência atual como "Referência".
+	*/
 	public void r15() {
 		classe_t = SymbolTableManager.TRANSFER_REF;
 	}
 
-	public void r18(Identifier proc, Token t, Identifier dt) throws ParseException {
+	/*
+	Cria identificador na tabela de símbolos, lança erro se for duplicado.
+	Define categoria como "parâmetro" e atualiza seu
+	tipo, classe de transferência e tipo.
+	*/
+	public void r18(Identifier proc, Token t, Identifier dt) {
+		if (proc==null || dt==null)
+			return;
 		Identifier id = new Identifier();
 		id.setID(t.image.toUpperCase());
 		id.setLevel(currentLevel);
 		id.setCategory(SymbolTableManager.CATEGORY_PARAM);
+		id.setTransferType(classe_t);
 		id.setType(dt);
 		proc.getParameters().add(id);
 
 		if (!STManager.addSymbol(id)) {
-			errorCode = ErrorConstants.ERR_DUPLICATE_IDENTIFIER;
 			errorParams = new ArrayList<String>();
 			errorParams.add(id.getID());
-			throw generateParseException();
+			error(ErrorConstants.ERR_DUPLICATE_IDENTIFIER,generateParseException());
 		}
 	}
 
-	public Identifier r21(Token t) throws ParseException {
+	/*
+	Busca identificador na tabela de símbolos, lança erro se não foi declarado.
+	*/
+	public Identifier r21(Token t) {
 		Identifier id = STManager.getIdentifier(t.image);
 		if (id==null) {
-			errorCode = ErrorConstants.ERR_IDENTIFIER_NOT_DECLARED;
 			errorParams = new ArrayList<String>();
 			errorParams.add(t.image.toUpperCase());
-			throw generateParseException();
+			error(ErrorConstants.ERR_IDENTIFIER_NOT_DECLARED,generateParseException());
 		}
 
 		return id;
 	}
 
-	public Identifier r21a(Identifier id,Token t) throws ParseException {
-		Identifier aux = STManager.getRecordIdentifier(id,t.image);
+	/*
+	Busca campo de record na tabela de símbolos,
+	lança erro se não foi declarado.
+	*/
+	public Identifier r21a(Identifier id,Token t) {
+		if (id==null)
+			return null;
+		Identifier aux = null;
+		try {
+			aux = STManager.getRecordIdentifier(id,t.image);
+		} catch (Exception e) {}
 		if (aux==null) {
-			errorCode = ErrorConstants.ERR_IDENTIFIER_NOT_DECLARED;
 			errorParams = new ArrayList<String>();
 			errorParams.add(t.image.toUpperCase());
-			throw generateParseException();
+			error(ErrorConstants.ERR_IDENTIFIER_NOT_DECLARED,generateParseException());
 		}
 
 		return aux;
 	}
 
-	public void r22(Identifier id) throws ParseException {
+	/*
+	Lança erro se a função usada não foi declarada
+	*/
+	public void r22(Identifier id) {
+		if (id==null)
+			return;
 		if (id.getCategory() != SymbolTableManager.CATEGORY_FUNCTION)
 		{
-			errorCode = ErrorConstants.ERR_FUNCTION_NOT_DECLARED;
 			errorParams = new ArrayList<String>();
 			errorParams.add(id.getID());
-			throw generateParseException();
+			error(ErrorConstants.ERR_FUNCTION_NOT_DECLARED,generateParseException());
 		}
 	}
 
-	public void r22a(Identifier id) throws ParseException {
+	/*
+	Lança erro se a categorie do identificador não for
+	função, parâmetro, variável ou constante.
+	*/
+	public void r22a(Identifier id) {
+		if (id==null)
+			return;
 		if (id.getCategory() != SymbolTableManager.CATEGORY_FUNCTION &&
 			id.getCategory() != SymbolTableManager.CATEGORY_PARAM &&
 			id.getCategory() != SymbolTableManager.CATEGORY_VAR &&
 			id.getCategory() != SymbolTableManager.CATEGORY_CONST)
 		{
-			errorCode = ErrorConstants.ERR_FPVC_NOT_DECLARED;
 			errorParams = new ArrayList<String>();
 			errorParams.add(id.getID());
-			throw generateParseException();
+			error(ErrorConstants.ERR_FPVC_NOT_DECLARED,generateParseException());
 		}
 	}
 
-	public void r24(Identifier id, int nPar) throws ParseException {
+	/*
+	Lança erro se o número de parâmetros for incorreto.
+	*/
+	public void r24(Identifier id, int nPar) {
+		if (id==null)
+			return;
+		if (id.getCategory() != SymbolTableManager.CATEGORY_PROCEDURE &&
+			id.getCategory() != SymbolTableManager.CATEGORY_FUNCTION)
+			return;
 		if (id.getParameters().size() != nPar){
-			errorCode = ErrorConstants.ERR_N_PAR_INCOMPATICLE;
-			throw generateParseException();
+			error(ErrorConstants.ERR_N_PAR_INCOMPATICLE,generateParseException());
 		}
 	}
 
-	public void r25(Identifier id) throws ParseException {
+	/*
+	Lança erro se o procedimento usado não foi declarada
+	*/
+	public void r25(Identifier id)  {
+		if (id==null)
+			return;
 		if (id.getCategory() != SymbolTableManager.CATEGORY_PROCEDURE)
 		{
-			errorCode = ErrorConstants.ERR_PROCEDURE_NOT_DECLARED;
 			errorParams = new ArrayList<String>();
 			errorParams.add(id.getID());
-			throw generateParseException();
+			error(ErrorConstants.ERR_PROCEDURE_NOT_DECLARED,generateParseException());
 		}
 	}
 
-	public void r26(Token t, boolean minus) throws ParseException {
+	/*
+	Lança erro se o valor inteiro for maior do que o limite.
+	*/
+	public void r26i(Token t, boolean minus) {
 		Integer i = null;
 		try {
 			i = new Integer(t.image);
 			if (minus)
 				i = -i;
 		} catch (Exception e) {
-			r26r(t,minus);
-			return;
-		}
-		if (i<-32768 || i>32767) {
-			r26r(t,minus);
-		}
-	}
-
-	public void r26i(Token t, boolean minus) throws ParseException {
-		Integer i = null;
-		try {
-			i = new Integer(t.image);
-			if (minus)
-				i = -i;
-		} catch (Exception e) {
-			r26r(t,minus);
-			return;
-		}
-		if (i<-32768 || i>32767) {
-			errorCode = ErrorConstants.ERR_INT_OVERFLOW;
 			errorParams = new ArrayList<String>();
 			errorParams.add(t.image);
-			throw generateParseException();
+			error(ErrorConstants.ERR_INT_OVERFLOW,generateParseException());
+			return;
+		}
+		if (i<-32768 || i>32767) {
+			errorParams = new ArrayList<String>();
+			errorParams.add(t.image);
+			error(ErrorConstants.ERR_INT_OVERFLOW,generateParseException());
 		}
 	}
 
-	public void r26r(Token t, boolean minus) throws ParseException {
+	/*
+	Lança erro se o valor real for maior do que o limite.
+	*/
+	public void r26r(Token t, boolean minus) {
 		Double d = null;
 		try {
 			d = new Double(t.image);
 			if (minus)
 				d = -d;
 		} catch (Exception e) {
-			errorCode = ErrorConstants.ERR_REAL_OVERFLOW;
 			errorParams = new ArrayList<String>();
 			errorParams.add(t.image);
-			throw generateParseException();
+			error(ErrorConstants.ERR_REAL_OVERFLOW,generateParseException());
+			return;
 		}
 		if (d<-2147483648d || d>2147483647d) {
-			errorCode = ErrorConstants.ERR_REAL_OVERFLOW;
 			errorParams = new ArrayList<String>();
 			errorParams.add(t.image);
-			throw generateParseException();
+			error(ErrorConstants.ERR_REAL_OVERFLOW,generateParseException());
 		}
 	}
 
-	public void r26s(Token t) throws ParseException {
+	/*
+	Lança erro se a string for maior do que o limite.
+	*/
+	public void r26s(Token t) {
 		if (t.image.length() >256) {
-			errorCode = ErrorConstants.ERR_STRING_OVERFLOW;
 			errorParams = new ArrayList<String>();
 			errorParams.add(t.image);
-			throw generateParseException();
+			error(ErrorConstants.ERR_STRING_OVERFLOW,generateParseException());
 		}
 	}
 
-	public void r27(ArrayList<Identifier> ids) throws ParseException {
+	/*
+	Lança erro se o identificador não puder ser alterado.
+	*/
+	public void r27(ArrayList<Identifier> ids) {
+		if (ids==null || ids.size()<=0)
+			return;
 		Identifier id = ids.get(ids.size()-1);
+		if (id==null)
+			return;
 		if (id.getCategory() != SymbolTableManager.CATEGORY_PARAM &&
 			id.getCategory() != SymbolTableManager.CATEGORY_VAR)
 		{
@@ -375,21 +535,24 @@ public class JASON {
 			for (int i=1;i<ids.size();i++) {
 				s = s+"."+ids.get(i);
 			}
-			errorCode = ErrorConstants.ERR_CANT_SET;
 			errorParams = new ArrayList<String>();
 			errorParams.add(s);
-			throw generateParseException();
+			error(ErrorConstants.ERR_CANT_SET,generateParseException());
 		}
 	}
 
-	public void rVP(Identifier id) throws ParseException {
+	/*
+	Lança erro se a variável ou parâmetro não for declarado.
+	*/
+	public void rVP(Identifier id) {
+		if (id==null)
+			return;
 		if (id.getCategory() != SymbolTableManager.CATEGORY_PARAM &&
 			id.getCategory() != SymbolTableManager.CATEGORY_VAR)
 		{
-			errorCode = ErrorConstants.ERR_VP_NOT_DECLARED;
 			errorParams = new ArrayList<String>();
 			errorParams.add(id.getID());
-			throw generateParseException();
+			error(ErrorConstants.ERR_VP_NOT_DECLARED,generateParseException());
 		}
 	}
 
@@ -413,147 +576,7 @@ public class JASON {
 		try {
 			this.Program();
 			result += "OK.\u005cn";
-		} catch (ParseException e) {
-			switch (errorCode)
-			{
-			case ErrorConstants.ERR_CANT_SET: 
-				errorMessage = "Identificador ("+
-						errorParams.get(0)+
-						") na linha " + e.currentToken.beginLine + ", coluna "
-						+ e.currentToken.beginColumn + ", não pode ser modificado.";
-				break;
-			case ErrorConstants.ERR_INT_OVERFLOW: 
-				errorMessage = "Valor inteiro ("+
-						errorParams.get(0)+
-						") na linha " + e.currentToken.beginLine + ", coluna "
-						+ e.currentToken.beginColumn +
-						", não é valido. Inteiros devem estar entre -32768 e 32767.";
-				break;
-			case ErrorConstants.ERR_REAL_OVERFLOW: 
-				errorMessage = "Valor real ("+
-						errorParams.get(0)+
-						") na linha " + e.currentToken.beginLine + ", coluna "
-						+ e.currentToken.beginColumn +
-						", não é valido. Reais devem estar entre -32768 e 32767.";
-				break;
-			case ErrorConstants.ERR_LOGIC_OP_INVALID: 
-				errorMessage = "Valor lógico inválido na linha " +
-				e.currentToken.beginLine + ".";
-				break;
-			case ErrorConstants.ERR_OP_MOD_INT_EXPECED: 
-				errorMessage = "Operador \"%\" espera apenas inteiros, na linha " +
-				e.currentToken.beginLine + ".";
-				break;
-			case ErrorConstants.ERR_BOOLEAN_READ: 
-				errorMessage = "Variável booleana não pode ser lida, na linha " +
-				e.currentToken.beginLine + ".";
-				break;
-			case ErrorConstants.ERR_STRING_OP: 
-				errorMessage = "Operador relacional que envolve string "+
-				"deve ser: string <relacional> string, na linha " +
-				e.currentToken.beginLine + ".";
-				break;
-			case ErrorConstants.ERR_BOOLEAN_OP:
-				errorMessage = "Apenas operadores \"=\" e \"!\" podem ser "+
-				"usados envolvendo booleans, na linha " +
-				e.currentToken.beginLine + ".";
-				break;
-			case ErrorConstants.ERR_NUM_OP:
-				errorMessage = "Operadores \"+\", \"-\", \"*\"ou \"\\\" "+
-				"podem apenas ser usados "+
-				"envolvendo inteiros ou reais, na linha " +
-				e.currentToken.beginLine + ".";
-				break;
-			case ErrorConstants.ERR_NUM_EXPECTED:
-				errorMessage = "Valor numérico esperado, na linha " +
-				e.currentToken.beginLine + ".";
-				break;
-			case ErrorConstants.ERR_INT_BOOL_EXPECTED:
-				errorMessage = "Valor inteiro ou booleano esperado, na linha " +
-				e.currentToken.beginLine + ".";
-				break;
-			case ErrorConstants.ERR_RETURN_INCOMPATIBLE:
-				errorMessage = "Tipo de retorno incompatível, na linha " +
-				e.currentToken.beginLine + ".";
-				break;
-			case ErrorConstants.ERR_INCOMPATIBLE_TYPES: 
-				errorMessage = "Tipos incompativeis na linha " +
-				e.currentToken.beginLine + ".";
-				break;
-			case ErrorConstants.ERR_BOOLEAN_EXPECTED: 
-				errorMessage = "Boolean esperado, na linha " +
-				e.currentToken.beginLine + ".";
-				break;
-			case ErrorConstants.ERR_DUPLICATE_IDENTIFIER: 
-				errorMessage = "Identificador duplicado ("+
-						errorParams.get(0)+
-						") na linha " + e.currentToken.beginLine + ", coluna "
-						+ e.currentToken.beginColumn;
-				break;
-			case ErrorConstants.ERR_IDENTIFIER_NOT_DECLARED: 
-				errorMessage = "Identificador não declarado ("+
-						errorParams.get(0)+
-						") na linha " + e.currentToken.beginLine + ", coluna "
-						+ e.currentToken.beginColumn;
-				break;
-			case ErrorConstants.ERR_FUNCTION_NOT_DECLARED: 
-				errorMessage = "Função não declarada ("+
-						errorParams.get(0)+
-						") na linha " + e.currentToken.beginLine + ", coluna "
-						+ e.currentToken.beginColumn;
-				break;
-			case ErrorConstants.ERR_TYPE_NOT_DECLARED: 
-				errorMessage = "Tipo não declarado ("+
-						errorParams.get(0)+
-						") na linha " + e.currentToken.beginLine + ", coluna "
-						+ e.currentToken.beginColumn;
-				break;
-			case ErrorConstants.ERR_REF_PARAM_READ_ONLY: 
-				errorMessage = "Identificador ("+
-						errorParams.get(0)+
-						") na linha " + e.currentToken.beginLine +
-						" não pode ser passado por referência";
-				break;
-			case ErrorConstants.ERR_REF_PARAM_INCOMPATIBLE: 
-				errorMessage = "Parâmetro na linha " + e.currentToken.beginLine +
-						" incompatível.";
-				break;
-			case ErrorConstants.ERR_N_PAR_INCOMPATICLE: 
-				errorMessage = "Incompatibilidade no número "+
-				"de parâmetros na linha " + e.currentToken.beginLine + ", coluna "
-						+ e.currentToken.beginColumn;
-				break;
-			case ErrorConstants.ERR_FPVC_NOT_DECLARED: 
-				errorMessage = "Função, parâmetro, variável ou constante não declarada ("+
-						errorParams.get(0)+
-						") na linha " + e.currentToken.beginLine + ", coluna "
-						+ e.currentToken.beginColumn;
-				break;
-			case ErrorConstants.ERR_VP_NOT_DECLARED: 
-				errorMessage = "Parâmetro ou variável não declarada ("+
-						errorParams.get(0)+
-						") na linha " + e.currentToken.beginLine + ", coluna "
-						+ e.currentToken.beginColumn;
-				break;
-			case ErrorConstants.ERR_CONSTANT_NOT_DEFINED: 
-				errorMessage = "Constante não definida ("+
-						errorParams.get(0)+
-						") na linha " + e.currentToken.beginLine + ", coluna "
-						+ e.currentToken.beginColumn;
-				break;
-			case ErrorConstants.ERR_NEGATIVE_ARRAY: 
-				errorMessage = "Array de tamanho não positivo "+
-					"na linha " +
-					errorTokenParams.get(0).beginLine + ", coluna "+
-					errorTokenParams.get(0).beginColumn;
-				break;
-			default:
-				errorCode = -1;
-				errorMessage += e.getMessage() + "\u005cn";
-			}
-
-			ReInit(is);
-		}
+		} 
 		catch (Exception e) {
 			errorCode = -1;
 			errorMessage += e.getMessage() + "\u005cn";
@@ -975,7 +998,7 @@ SPECIAL_TOKEN:
 	String Values(Identifier id, Identifier type[], String value[]): {Token t1 = null; Token t2;} {
 		{ boolean minus = false;}
 		( ( t1 = <OP_SUB> { minus = true;} )?
-				( t2 = <INTEGER_CONST> { r26(t2,minus); }
+				( t2 = <INTEGER_CONST> { r26i(t2,minus); }
 				{type[0] = STManager.getTypeInteger();value[0]=t2.image;}
 				| t2 = <REAL_CONST> { r26r(t2,minus); }
 				{type[0] = STManager.getTypeReal();value[0]=t2.image;})
@@ -1061,7 +1084,7 @@ SPECIAL_TOKEN:
 
 	Identifier ProcHeader(): {Token t;} {
 		<PROCEDURE> t = <IDENTIFIER>
-		{ Identifier id = r5(t); r13(id); } <SEMICOLON>
+		{ Identifier id = r5(t); } <SEMICOLON>
 		{ return id; }
 	}
 
@@ -1084,7 +1107,7 @@ SPECIAL_TOKEN:
 	}
 
 	Identifier FunctionHeader(): {Token t;Identifier dt;} {
-		<FUNCTION> t = <IDENTIFIER> { Identifier id = r6(t); r13(id);}
+		<FUNCTION> t = <IDENTIFIER> { Identifier id = r6(t); }
 		<RETURNS> dt = DataType() {r7(id,dt);}
 		<SEMICOLON>
 		{ return id; }
@@ -1310,7 +1333,9 @@ SPECIAL_TOKEN:
 		{ t1 = new Identifier[1]; }
 		(
 			Bool() {tipo[0] = STManager.getTypeBoolean();} |
-			t = <IDENTIFIER> { Identifier id = r21(t); varParam = id; r22a(id); t1[0] = id.getType();}
+			t = <IDENTIFIER> { Identifier id = r21(t); varParam = id;
+			if (id!=null) { r22a(id); t1[0] = id.getType(); }
+			}
 			( <PARENTHESIS_OPEN>
 			  {r22(id);} nPar = Arguments(id) {r24(id,nPar); }
 			  <PARENTHESIS_CLOSE> )?
@@ -1320,7 +1345,7 @@ SPECIAL_TOKEN:
 				}
 			| ( t = <INTEGER_CONST> 
 				{
-					r26(t,minus);
+					r26i(t,minus);
 					tipo[0] = STManager.getTypeInteger();
 				} 
 			| t = <REAL_CONST> 
@@ -1356,7 +1381,7 @@ SPECIAL_TOKEN:
 	// Apenas faz atribuição de tipos
 	ArrayList<Identifier> Variable(Identifier tipo[]): {Token t; Identifier id;
 		ArrayList<Identifier> ids = new ArrayList<Identifier>();} {
-		t = <IDENTIFIER> {id = r21(t); ids.add(id); tipo[0] = id.getType(); }
+		t = <IDENTIFIER> {id = r21(t); if (id!=null) { ids.add(id); tipo[0] = id.getType(); } }
 		id = VariableAux(id, tipo) { if (id != null) ids.add(id); }
 		{ return ids; }
 	}
@@ -1366,8 +1391,12 @@ SPECIAL_TOKEN:
 		{
 			Identifier t1[] = new Identifier[1];
 		}
-		( <DOT> { rVP(id); } t = <IDENTIFIER> {aux = r21a(id,t); tipo[0] = aux.getType();}
-		| <BRACKET_OPEN> Expression(t1) { testInteger(t1[0]); tipo[0] = id.getType().getArrayType(); } <BRACKET_CLOSE> )*
+		( <DOT> { rVP(id); } t = <IDENTIFIER> {aux = r21a(id,t);
+		if (aux!=null) { tipo[0] = aux.getType(); } }
+		| <BRACKET_OPEN> Expression(t1) {
+			testInteger(t1[0]);
+			if (id!=null && id.getType()!=null) tipo[0] = id.getType().getArrayType();
+		} <BRACKET_CLOSE> )*
 		{ return aux; }
 	}
 	void Argument(): {} { Condition(null) }
