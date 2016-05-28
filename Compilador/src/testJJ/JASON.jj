@@ -51,6 +51,10 @@ public class JASON {
 
 	public void testParamReference(Identifier id,
 				Identifier varParam, int nArg) throws ParseException {
+		if (varParam == null) {
+			errorCode = ErrorConstants.ERR_REF_PARAM_INCOMPATIBLE;
+			throw generateParseException();
+		}
 		if (id.getParameters().get(nArg-1).getTransferType() == SymbolTableManager.TRANSFER_REF) {
 			if (varParam.getCategory() != STManager.CATEGORY_VAR &&
 				varParam.getCategory() != STManager.CATEGORY_PARAM)			{
@@ -469,7 +473,7 @@ public class JASON {
 				e.currentToken.beginLine + ".";
 				break;
 			case ErrorConstants.ERR_RETURN_INCOMPATIBLE:
-				errorMessage = "Tipo de retorno incopatível, na linha " +
+				errorMessage = "Tipo de retorno incompatível, na linha " +
 				e.currentToken.beginLine + ".";
 				break;
 			case ErrorConstants.ERR_INCOMPATIBLE_TYPES: 
@@ -507,9 +511,12 @@ public class JASON {
 			case ErrorConstants.ERR_REF_PARAM_READ_ONLY: 
 				errorMessage = "Identificador ("+
 						errorParams.get(0)+
-						") na linha " + e.currentToken.beginLine + ", coluna "
-						+ e.currentToken.beginColumn +
+						") na linha " + e.currentToken.beginLine +
 						" não pode ser passado por referência";
+				break;
+			case ErrorConstants.ERR_REF_PARAM_INCOMPATIBLE: 
+				errorMessage = "Parâmetro na linha " + e.currentToken.beginLine +
+						" incompatível.";
 				break;
 			case ErrorConstants.ERR_N_PAR_INCOMPATICLE: 
 				errorMessage = "Incompatibilidade no número "+
@@ -1160,6 +1167,7 @@ SPECIAL_TOKEN:
 			varParam = null;
 			if (!(validLogicType(t1[0]) && validLogicType(t2[0])))
 				error(ErrorConstants.ERR_BOOLEAN_EXPECTED);
+				tipo[0] = STManager.getTypeBoolean();
 			c2 = true;
 		}
 		)*
@@ -1180,7 +1188,7 @@ SPECIAL_TOKEN:
 		{
 			varParam = null;
 			if (validLogicType(t1[0]) && validLogicType(t2[0]))
-				validLogicType(tipo[0]);
+				tipo[0] = STManager.getTypeBoolean();
 			else error(ErrorConstants.ERR_BOOLEAN_EXPECTED);
 			c2 = true;
 		}
@@ -1206,7 +1214,9 @@ SPECIAL_TOKEN:
 			if ((t1[0] == STManager.getTypeString() && t2[0] != STManager.getTypeString())
 				|| (t1[0] != STManager.getTypeString() && t2[0] == STManager.getTypeString()))
 				error(ErrorConstants.ERR_STRING_OP);
-			else if ((t.kind != OP_EQUALS && t.kind != OP_DIFFERENT) && 
+			else if ((t.kind != OP_EQUALS && t.kind != OP_DIFFERENT &&
+					  t.kind != OP_GREATER_OR_EQUAL && t.kind != OP_LESS_OR_EQUAL &&
+					  t.kind != OP_GREATER && t.kind != OP_LESS) && 
 					(validLogicType(t1[0]) || validLogicType(t2[0])))
 					error(ErrorConstants.ERR_BOOLEAN_OP);
 			else tipo[0] = STManager.getTypeBoolean();
@@ -1238,8 +1248,7 @@ SPECIAL_TOKEN:
 		}
 		)*
 		{
-			if (!c2)
-				tipo[0] = t1[0]; 		}
+			if (!c2) tipo[0] = t1[0]; 		}
 		{ return varParam; }
 	}
 
@@ -1275,8 +1284,8 @@ SPECIAL_TOKEN:
 		{Identifier varParam = null; Token t = null; Identifier t1[]; } {
 		{ t1 = new Identifier[1]; }
 		(	(
-				<OP_ADD> |
-				<OP_SUB> { minus = !minus; hasSign = true; varParam = null; }
+				<OP_ADD> { hasSign = true; } |
+				<OP_SUB> { minus = !minus; varParam = null; }
 			)
 			varParam = Unary(t1,minus,hasSign) { tipo[0] = t1[0]; } |
 			varParam = Factor(minus,t1)
@@ -1301,7 +1310,7 @@ SPECIAL_TOKEN:
 		{ t1 = new Identifier[1]; }
 		(
 			Bool() {tipo[0] = STManager.getTypeBoolean();} |
-			t = <IDENTIFIER> { Identifier id = r21(t); r22a(id); t1[0] = id.getType();}
+			t = <IDENTIFIER> { Identifier id = r21(t); varParam = id; r22a(id); t1[0] = id.getType();}
 			( <PARENTHESIS_OPEN>
 			  {r22(id);} nPar = Arguments(id) {r24(id,nPar); }
 			  <PARENTHESIS_CLOSE> )?
@@ -1309,7 +1318,6 @@ SPECIAL_TOKEN:
 				{
 					tipo[0] = t1[0];
 				}
-				{ varParam = id; }
 			| ( t = <INTEGER_CONST> 
 				{
 					r26(t,minus);
