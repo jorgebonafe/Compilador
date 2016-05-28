@@ -48,6 +48,10 @@ public class JASON {
 					+ e.currentToken.beginColumn +
 					", não é valido. Inteiros devem estar entre -32768 e 32767.";
 			break;
+		case ErrorConstants.ERR_STRING_OVERFLOW: 
+			errorMessage += "Strings não podem ser maiores do que"+
+			" 255 caracteres, na linha " + e.currentToken.beginLine + ".";
+			break;
 		case ErrorConstants.ERR_PARAM_INCOMPATIBLE: 
 			errorMessage += "Tipo de parâmetro incompatível na linha " +
 			e.currentToken.beginLine + ", coluna "
@@ -528,7 +532,7 @@ public class JASON {
 	Lança erro se a string for maior do que o limite.
 	*/
 	public void r26s(Token t) {
-		if (t.image.length() >256) {
+		if (t.image.length()>255) {
 			errorParams = new ArrayList<String>();
 			errorParams.add(t.image);
 			error(ErrorConstants.ERR_STRING_OVERFLOW,generateParseException());
