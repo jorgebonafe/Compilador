@@ -35,7 +35,6 @@ public class JASON {
 	}
 
 	public void error(int error, ParseException e) {
-//		e.printStackTrace();
 		errorCode = error;
 		boolean printed = true;
 		
@@ -49,14 +48,20 @@ public class JASON {
 					+ e.currentToken.beginColumn +
 					", não é valido. Inteiros devem estar entre -32768 e 32767.";
 			break;
+		case ErrorConstants.ERR_PARAM_INCOMPATIBLE: 
+			errorMessage += "Tipo de parâmetro incompatível na linha " +
+			e.currentToken.beginLine + ", coluna "
+					+ e.currentToken.beginColumn +
+					".";
+			break;
 		case ErrorConstants.ERR_REAL_OVERFLOW: 
 			errorMessage += "Valor real ("+
 					errorParams.get(0)+
 					") na linha " + e.currentToken.beginLine + ", coluna "
 					+ e.currentToken.beginColumn +
-					", não é valido. Reais devem estar entre -32768 e 32767.";
+					", não é valido. Reais devem estar entre -2147483648 e 2147483647.";
 			break;
-//		case ErrorConstants.ERR_LOGIC_OP_INVALID: //			errorMessage += "Valor lógico inválido na linha " +//			e.currentToken.beginLine + ".";//			break;//		case ErrorConstants.ERR_OP_MOD_INT_EXPECED: //			errorMessage += "Operador \"%\" espera apenas inteiros, na linha " +//			e.currentToken.beginLine + ".";//			break;//		case ErrorConstants.ERR_BOOLEAN_READ: //			errorMessage += "Variável booleana não pode ser lida, na linha " +//			e.currentToken.beginLine + ".";//			break;//		case ErrorConstants.ERR_STRING_OP: //			errorMessage += "Operador relacional que envolve string "+//			"deve ser: string <relacional> string, na linha " +//			e.currentToken.beginLine + ".";//			break;//		case ErrorConstants.ERR_BOOLEAN_OP://			errorMessage += "Apenas operadores \"=\" e \"!\" podem ser "+//			"usados envolvendo booleans, na linha " +//			e.currentToken.beginLine + ".";//			break;//		case ErrorConstants.ERR_NUM_OP://			errorMessage += "Operadores \"+\", \"-\", \"*\"ou \"\\\" "+//			"podem apenas ser usados "+//			"envolvendo inteiros ou reais, na linha " +//			e.currentToken.beginLine + ".";//			break;//		case ErrorConstants.ERR_NUM_EXPECTED://			errorMessage += "Valor numérico esperado, na linha " +//			e.currentToken.beginLine + ".";//			break;//		case ErrorConstants.ERR_INT_BOOL_EXPECTED://			errorMessage += "Valor inteiro ou booleano esperado, na linha " +//			e.currentToken.beginLine + ".";//			break;//		case ErrorConstants.ERR_RETURN_INCOMPATIBLE://			errorMessage += "Tipo de retorno incompatível, na linha " +//			e.currentToken.beginLine + ".";//			break;//		case ErrorConstants.ERR_INCOMPATIBLE_TYPES: //			errorMessage += "Tipos incompativeis na linha " +//			e.currentToken.beginLine + ".";//			break;//		case ErrorConstants.ERR_BOOLEAN_EXPECTED: //			errorMessage += "Boolean esperado, na linha " +//			e.currentToken.beginLine + ".";//			break;
+		case ErrorConstants.ERR_LOGIC_OP_INVALID: 			errorMessage += "Valor lógico inválido na linha " +			e.currentToken.beginLine + ".";			break;		case ErrorConstants.ERR_OP_MOD_INT_EXPECED: 			errorMessage += "Operador \"%\" espera apenas inteiros, na linha " +			e.currentToken.beginLine + ".";			break;		case ErrorConstants.ERR_BOOLEAN_READ: 			errorMessage += "Variável booleana não pode ser lida, na linha " +			e.currentToken.beginLine + ".";			break;		case ErrorConstants.ERR_STRING_OP: 			errorMessage += "Operador relacional que envolve string "+			"deve ser: string <relacional> string, na linha " +			e.currentToken.beginLine + ".";			break;		case ErrorConstants.ERR_BOOLEAN_OP:			errorMessage += "Apenas operadores \"=\" e \"!\" podem ser "+			"usados envolvendo booleans, na linha " +			e.currentToken.beginLine + ".";			break;		case ErrorConstants.ERR_NUM_OP:			errorMessage += "Operadores \"+\", \"-\", \"*\"ou \"\\\" "+			"podem apenas ser usados "+			"envolvendo inteiros ou reais, na linha " +			e.currentToken.beginLine + ".";			break;		case ErrorConstants.ERR_NUM_EXPECTED:			errorMessage += "Valor numérico esperado, na linha " +			e.currentToken.beginLine + ".";			break;		case ErrorConstants.ERR_INT_BOOL_EXPECTED:			errorMessage += "Valor inteiro ou booleano esperado, na linha " +			e.currentToken.beginLine + ".";			break;		case ErrorConstants.ERR_RETURN_INCOMPATIBLE:			errorMessage += "Tipo de retorno incompatível, na linha " +			e.currentToken.beginLine + ".";			break;		case ErrorConstants.ERR_INCOMPATIBLE_TYPES: 			errorMessage += "Tipos incompativeis na linha " +			e.currentToken.beginLine + ".";			break;		case ErrorConstants.ERR_BOOLEAN_EXPECTED: 			errorMessage += "Boolean esperado, na linha " +			e.currentToken.beginLine + ".";			break;
 		case ErrorConstants.ERR_DUPLICATE_IDENTIFIER: 
 			errorMessage += "Identificador duplicado ("+
 					errorParams.get(0)+
@@ -81,13 +86,13 @@ public class JASON {
 					") na linha " + e.currentToken.beginLine + ", coluna "
 					+ e.currentToken.beginColumn;
 			break;
-//		case ErrorConstants.ERR_REF_PARAM_READ_ONLY: //			errorMessage += "Identificador ("+//					errorParams.get(0)+//					") na linha " + e.currentToken.beginLine +//					" não pode ser passado por referência";//			break;//		case ErrorConstants.ERR_REF_PARAM_INCOMPATIBLE: //			errorMessage += "Parâmetro na linha " + e.currentToken.beginLine +//					" incompatível.";//			break;
+		case ErrorConstants.ERR_REF_PARAM_READ_ONLY: 			errorMessage += "Identificador ("+					errorParams.get(0)+					") na linha " + e.currentToken.beginLine +					" não pode ser passado por referência";			break;		case ErrorConstants.ERR_REF_PARAM_INCOMPATIBLE: 			errorMessage += "Parâmetro na linha " + e.currentToken.beginLine +					" incompatível.";			break;
 		case ErrorConstants.ERR_N_PAR_INCOMPATICLE: 
 			errorMessage += "Incompatibilidade no número "+
 			"de parâmetros na linha " + e.currentToken.beginLine + ", coluna "
 					+ e.currentToken.beginColumn;
 			break;
-//		case ErrorConstants.ERR_FPVC_NOT_DECLARED: //			errorMessage += "Função, parâmetro, variável ou constante não declarada ("+//					errorParams.get(0)+//					") na linha " + e.currentToken.beginLine + ", coluna "//					+ e.currentToken.beginColumn;//			break;//		case ErrorConstants.ERR_VP_NOT_DECLARED: //			errorMessage += "Parâmetro ou variável não declarada ("+//					errorParams.get(0)+//					") na linha " + e.currentToken.beginLine + ", coluna "//					+ e.currentToken.beginColumn;//			break;
+		case ErrorConstants.ERR_FPVC_NOT_DECLARED: 			errorMessage += "Função, parâmetro, variável ou constante não declarada ("+					errorParams.get(0)+					") na linha " + e.currentToken.beginLine + ", coluna "					+ e.currentToken.beginColumn;			break;		case ErrorConstants.ERR_VP_NOT_DECLARED: 			errorMessage += "Parâmetro ou variável não declarada ("+					errorParams.get(0)+					") na linha " + e.currentToken.beginLine + ", coluna "					+ e.currentToken.beginColumn;			break;
 		case ErrorConstants.ERR_NEGATIVE_ARRAY: 
 			errorMessage += "Array de tamanho não positivo "+
 				"na linha " +
@@ -119,17 +124,28 @@ public class JASON {
 				Identifier varParam, int nArg) {
 		if (id==null)
 			return;
-		if (varParam == null) {
-			error(ErrorConstants.ERR_REF_PARAM_INCOMPATIBLE, generateParseException());
-		}
 		else if (id.getParameters().size()==0)
 			return;
 		else if (id.getParameters().get(nArg-1).getTransferType() == SymbolTableManager.TRANSFER_REF) {
+			if (varParam == null) {
+				error(ErrorConstants.ERR_REF_PARAM_INCOMPATIBLE, generateParseException());
+			}
 			if (varParam.getCategory() != STManager.CATEGORY_VAR &&
 				varParam.getCategory() != STManager.CATEGORY_PARAM)			{
 				errorParams = new ArrayList<String>();
 				errorParams.add(varParam.getID());
 				error(ErrorConstants.ERR_REF_PARAM_READ_ONLY,generateParseException());			}		}	}
+
+	public void testParamType(Identifier id,
+				Identifier tipo, int nArg) {
+		if (id==null)
+			return;
+		else if (id.getParameters().size()==0)
+			return;
+		else if (id.getParameters().get(nArg-1).getType() != tipo) {
+			error(ErrorConstants.ERR_PARAM_INCOMPATIBLE,generateParseException());
+		}
+	}
 
 	/*
 	Cria identificador na tabela de símbolos, lança erro se for duplicado.
@@ -576,7 +592,8 @@ public class JASON {
 		try {
 			this.Program();
 			result += "OK.\u005cn";
-		} 
+		}
+		catch (NullPointerException e) {}
 		catch (Exception e) {
 			errorCode = -1;
 			errorMessage += e.getMessage() + "\u005cn";
@@ -585,273 +602,6 @@ public class JASON {
 			errorCode = -1;
 			errorMessage += e.getMessage() + "\u005cn";
 		}
-
-		/*
-		Token t = null;
-		Token previousT = null;
-		Token lastStringT = null;
-		Token lastCommentT = null;
-		outerloop:
-		while (true)
-		{
-			try
-			{
-				t = getNextToken();
-				String tokenName = "";
-				if (t.kind != 0)
-				{
-					int spaces = 0;
-					spaces = 4 - new Integer(t.beginLine).toString().length();
-					if (spaces<0)
-						spaces = 0;
-					int spaces2 = 3 - new Integer(t.beginColumn).toString().length();
-					if (spaces2 < 0)
-						spaces2 = 0;
-
-					result = result + "(";
-					for (int i=0;i<spaces;i++)
-						result = result + " ";
-					result = result + t.beginLine + ",";
-					for (int i=0;i<spaces2;i++)
-						result = result + " ";
-					result = result + t.beginColumn + ")   ";
-				}
-				switch (t.kind)
-				{
-					case ARRAY : 
-					tokenName = "ARRAY";
-					break;
-					case BEGIN : 
-					tokenName = "BEGIN";
-					break;
-					case CALL : 
-					tokenName = "CALL";
-					break;
-					case DO : 
-					tokenName = "DO";
-					break;
-					case ELSE : 
-					tokenName = "ELSE";
-					break;
-					case END : 
-					tokenName = "END";
-					break;
-					case ENDIF : 
-					tokenName = "ENDIF";
-					break;
-					case ENDUNTIL : 
-					tokenName = "ENDUNTIL";
-					break;
-					case ENDWHILE : 
-					tokenName = "ENDWHILE";
-					break;
-					case FUNCTION : 
-					tokenName = "FUNCTION";
-					break;
-					case IF : 
-					tokenName = "IF";
-					break;
-					case INTEGER : 
-					tokenName = "INTEGER";
-					break;
-					case PARAMETERS : 
-					tokenName = "PARAMETERS";
-					break;
-					case PROCEDURE : 
-					tokenName = "PROCEDURE";
-					break;
-					case RETURNS : 
-					tokenName = "RETURNS";
-					break;
-					case PROGRAM : 
-					tokenName = "PROGRAM";
-					break;
-					case READ : 
-					tokenName = "READ";
-					break;
-					case REAL : 
-					tokenName = "REAL";
-					break;
-					case RECORD : 
-					tokenName = "RECORD";
-					break;
-					case RETURN : 
-					tokenName = "RETURN";
-					break;
-					case SET : 
-					tokenName = "SET";
-					break;
-					case STRING : 
-					tokenName = "STRING";
-					break;
-					case THEN : 
-					tokenName = "THEN";
-					break;
-					case TYPES : 
-					tokenName = "TYPES";
-					break;
-					case UNTIL : 
-					tokenName = "UNTIL";
-					break;
-					case VAR : 
-					tokenName = "VAR";
-					break;
-					case VARIABLES : 
-					tokenName = "VARIABLES";
-					break;
-					case WHILE : 
-					tokenName = "WHILE";
-					break;
-					case WRITE : 
-					tokenName = "WRITE";
-					break;
-					case BOOLEAN : 
-					tokenName = "BOOLEAN";
-					break;
-					case TRUE : 
-					tokenName = "TRUE";
-					break;
-					case FALSE : 
-					tokenName = "FALSE";
-					break;
-					case DEFINE : 
-					tokenName = "DEFINE";
-					break;
-					case OP_ADD : 
-					tokenName = "OP_ADD";
-					break;
-					case OP_SUB : 
-					tokenName = "OP_SUB";
-					break;
-					case OP_MULT : 
-					tokenName = "OP_MULT";
-					break;
-					case OP_DIV : 
-					tokenName = "OP_DIV";
-					break;
-					case OP_MOD : 
-					tokenName = "OP_MOD";
-					break;
-					case OP_EQUALS : 
-					tokenName = "OP_EQUALS";
-					break;
-					case OP_LESS : 
-					tokenName = "OP_LESS";
-					break;
-					case OP_GREATER : 
-					tokenName = "OP_GREATER";
-					break;
-					case OP_LESS_OR_EQUAL : 
-					tokenName = "OP_LESS_OR_EQUAL";
-					break;
-					case OP_GREATER_OR_EQUAL : 
-					tokenName = "OP_GREATER_OR_EQUAL";
-					break;
-					case OP_DIFFERENT : 
-					tokenName = "OP_DIFFERENT";
-					break;
-					case BRACKET_OPEN : 
-					tokenName = "BRACKET_OPEN";
-					break;
-					case BRACKET_CLOSE : 
-					tokenName = "BRACKET_CLOSE";
-					break;
-					case PARENTHESIS_OPEN : 
-					tokenName = "PARENTHESIS_OPEN";
-					break;
-					case PARENTHESIS_CLOSE : 
-					tokenName = "PARENTHESIS_CLOSE";
-					break;
-					case COMMA : 
-					tokenName = "COMMA";
-					break;
-					case DOT : 
-					tokenName = "DOT";
-					break;
-					case SEMICOLON : 
-					tokenName = "SEMICOLON";
-					break;
-					case AND : 
-					tokenName = "AND";
-					break;
-					case OR : 
-					tokenName = "OR";
-					break;
-					case NOT : 
-					tokenName = "NOT";
-					break;
-					case INTEGER_CONST : 
-					tokenName = "INTEGER_CONST";
-					break;
-					case REAL_CONST : 
-					tokenName = "REAL_CONST";
-					break;
-					case IDENTIFIER : 
-					tokenName = "IDENTIFIER";
-					break;
-					case COMMENT_CORE : 
-					lastCommentT = t.specialToken;
-					case STRING_CORE : 
-					lastStringT = t.specialToken;
-					break;
-					case STRING_CONST : 
-					tokenName = "STRING_CONST";
-					break;
-					case EOF :
-						if (previousT != null && previousT.kind == COMMENT_CORE) {
-								errorCode = 2;
-							errorMessage = "Comentário de bloco na linha "+
-							lastCommentT.beginLine + ", coluna "+lastCommentT.beginColumn + " nunca foi fechado.";
-						}					
-						if (t.specialToken != null &&
-							t.specialToken.kind == COMMENT_INNER) {
-								errorCode = 2;
-							errorMessage = "Comentário de bloco na linha "+
-							t.beginLine + ", coluna "+t.beginColumn + " nunca foi fechado.";
-						}
-						else if (previousT != null && previousT.kind == STRING_CORE) {
-								errorCode = 3;
-							errorMessage = "String na linha "+
-							lastStringT.beginLine + ", coluna "+lastStringT.beginColumn + " nunca foi fechada.";
-						}
-						else if (t.specialToken != null &&
-							t.specialToken.kind == STRING_START) {
-								errorCode = 3;
-							errorMessage = "String na linha "+
-							t.specialToken.beginLine + ", coluna "+t.specialToken.beginColumn + " nunca foi fechada.";
-						}
-
-					break outerloop;
-					case IDENTIFIER_ERR : 
-					errorCode = 1;
-					errorMessage = "Identificador muito longo na linha " +
-						t.beginLine + ", coluna "+t.beginColumn +
-						". Tamanho máximo é 63 caracteres.";
-					break outerloop;
-					default:
-					break outerloop;
-				}
-				previousT = t;
-
-				int spaces = 0;
-				spaces = 16 - tokenName.length();
-
-				for (int i=0;i<spaces;i++)
-					result = result + " ";
-
-				result = result + tokenName + ": " + t.image + "\n";
-			}
-			catch (Exception e)
-			{}
-			catch (TokenMgrError e)
-			{
-				errorCode = 1;
-				errorMessage = e.getMessage();
-				break;
-			}
-		}
-
-		 */
 		return result;
 	}
 }
@@ -1170,8 +920,9 @@ SPECIAL_TOKEN:
 	}
 
 	int Arguments(Identifier id): {int nArg = 1; Identifier varParam = null;} {
-		varParam = Condition(null)
-		{ testParamReference(id,varParam,nArg); }
+		{ Identifier tipo[] = new Identifier[1]; }
+		varParam = Condition(tipo)
+		{ testParamReference(id,varParam,nArg); testParamType(id,tipo[0],nArg); }
 		(<COMMA> Condition(null) {nArg++;})*
 		{ return nArg; }
 	}
