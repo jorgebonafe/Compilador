@@ -25,11 +25,174 @@ public class JASON {
 	SymbolTableManager STManager;
 	ArrayList<String> errorParams;
 	ArrayList<Token> errorTokenParams;
+	ArrayList<MepaCommand> codigoObj;
 	HashMap<String,String> definitions;
+	int currentLabel = 1;
 	int offset = 0;
+	int programSize = 0;
+	boolean hasSubProg = false;
+	boolean addedMainDSVS = false;
+	int indexMainDSVS = 0;
 
 	int classe_t;
 
+    public String printCodObj() {
+        StringBuilder result = new StringBuilder(); 
+ 
+        for (int i=0;i<codigoObj.size(); i++) {
+            result.append(codigoObj.get(i));
+            result.append("\n");
+        }
+        return result.toString();
+    }
+
+	private void addCommand(String label, String c) {
+		MepaCommand mc = new MepaCommand(c);
+		mc.setLabel(label);
+		codigoObj.add(mc);
+	}
+
+	private void addCommand(String label, String c, String p1) {
+		MepaCommand mc = new MepaCommand(c);
+		mc.setLabel(label);
+		mc.setP1(p1);
+		codigoObj.add(mc);
+	}
+
+	private void addCommand(String label, String c, String p1, String p2) {
+		MepaCommand mc = new MepaCommand(c);
+		mc.setLabel(label);
+		mc.setP1(p1);
+		mc.setP2(p2);
+		codigoObj.add(mc);
+	}
+
+	private void addCommand(String label, String c, String p1, String p2, String labelParam) {
+		MepaCommand mc = new MepaCommand(c);
+		mc.setLabel(label);
+		mc.setP1(p1);
+		mc.setP2(p2);
+		mc.setLabelParam(labelParam);
+		codigoObj.add(mc);
+	}
+
+	private void addCommand(String label, String c, String p1, String p2, String labelParam, int i) {
+		MepaCommand mc = new MepaCommand(c);
+		mc.setLabel(label);
+		mc.setP1(p1);
+		mc.setP2(p2);
+		mc.setLabelParam(labelParam);
+		codigoObj.add(i,mc);
+	}
+
+	private void updateParamAddresses (Identifier proc) {		if (proc==null)
+			return;
+		ArrayList<Identifier> parameters = proc.getParameters();
+		for (int i=0;i<parameters.size();i++) {
+			parameters.get(i).setAddress(-2-(parameters.size()-i));		}
+	}
+
+	private void loadID(Identifier id) {
+		if (id.getCategory() == SymbolTableManager.CATEGORY_PARAM &&
+			id.getTransferType() == SymbolTableManager.TRANSFER_REF) {
+			addCommand("","CRVI",
+			new Integer(id.getLevel()).toString(),
+			new Integer(id.getAddress()).toString());
+		}
+		else {
+			addCommand("","CRVL",
+			new Integer(id.getLevel()).toString(),
+			new Integer(id.getAddress()).toString());
+		}
+	}
+
+	private void loadRefParam(Identifier id) {
+		MepaCommand mc = codigoObj.get(codigoObj.size()-1);
+		mc.setCommand("CREN");
+	}
+
+	private void loadRefValue(Identifier id) {
+		MepaCommand mc = codigoObj.get(codigoObj.size()-1);
+		mc.setCommand("CRVL");
+	}
+
+	private void saveID(Identifier id) {
+		if (id.getCategory() == SymbolTableManager.CATEGORY_PARAM &&
+			id.getTransferType() == SymbolTableManager.TRANSFER_REF) {
+			addCommand("","ARMI",
+			new Integer(id.getLevel()).toString(),
+			new Integer(id.getAddress()).toString());
+		}
+		else {
+			addCommand("","ARMZ",
+			new Integer(id.getLevel()).toString(),
+			new Integer(id.getAddress()).toString());
+		}
+	}
+
+	private void loadInt(Token t) {
+		String v = t.image;
+
+		addCommand("","CRCT",v);
+	}
+
+	private void loadReal(Token t) {
+		String v = t.image;
+
+		addCommand("","CRCT",v);
+	}
+
+	private void loadString(Token t) {
+		// TODO
+//		String v = t.image;////		addCommand("","CRCT",v);
+	}
+
+	private void doSumSub(Token t) {		switch (t.kind) {
+		case OP_ADD:
+			addCommand("","SOMA");
+			break;
+		case OP_SUB:
+			addCommand("","SUBT");
+			break; 
+		}
+	}
+
+	private void doCompare(Token t) {
+		switch (t.kind) {
+		case OP_EQUALS:
+			addCommand("","CMIG");
+			break;
+		case OP_DIFFERENT:
+			addCommand("","CMDG");
+			break; 
+		case OP_GREATER_OR_EQUAL:
+			addCommand("","CMAG");
+			break; 
+		case OP_LESS_OR_EQUAL:
+			addCommand("","CMEG");
+			break; 
+		case OP_GREATER:
+			addCommand("","CMMA");
+			break; 
+		case OP_LESS:
+			addCommand("","CMME");
+			break; 
+		}
+	}
+
+	private void addEndCommands() {
+		if (programSize>0)
+			addCommand("","DMEM", new Integer(programSize).toString());
+		addCommand("","PARA");	}
+
+	private void addEndSubProgCommands(Identifier id, int size) {
+		if (size>0)
+			addCommand("","DMEM", new Integer(size).toString());
+		addCommand("","RTPR",
+		new Integer(id.getLevel()+1).toString(),
+		new Integer(id.getParameters().size()).toString());
+	}
+	
 	public void error(int error)  {
 		error(error, generateParseException());
 	}
@@ -65,7 +228,16 @@ public class JASON {
 					+ e.currentToken.beginColumn +
 					", não é valido. Reais devem estar entre -2147483648 e 2147483647.";
 			break;
-		case ErrorConstants.ERR_LOGIC_OP_INVALID: 			errorMessage += "Valor lógico inválido na linha " +			e.currentToken.beginLine + ".";			break;		case ErrorConstants.ERR_OP_MOD_INT_EXPECED: 			errorMessage += "Operador \"%\" espera apenas inteiros, na linha " +			e.currentToken.beginLine + ".";			break;		case ErrorConstants.ERR_BOOLEAN_READ: 			errorMessage += "Variável booleana não pode ser lida, na linha " +			e.currentToken.beginLine + ".";			break;		case ErrorConstants.ERR_STRING_OP: 			errorMessage += "Operador relacional que envolve string "+			"deve ser: string <relacional> string, na linha " +			e.currentToken.beginLine + ".";			break;		case ErrorConstants.ERR_BOOLEAN_OP:			errorMessage += "Apenas operadores \"=\" e \"!\" podem ser "+			"usados envolvendo booleans, na linha " +			e.currentToken.beginLine + ".";			break;		case ErrorConstants.ERR_NUM_OP:			errorMessage += "Operadores \"+\", \"-\", \"*\"ou \"\\\" "+			"podem apenas ser usados "+			"envolvendo inteiros ou reais, na linha " +			e.currentToken.beginLine + ".";			break;		case ErrorConstants.ERR_NUM_EXPECTED:			errorMessage += "Valor numérico esperado, na linha " +			e.currentToken.beginLine + ".";			break;		case ErrorConstants.ERR_INT_BOOL_EXPECTED:			errorMessage += "Valor inteiro ou booleano esperado, na linha " +			e.currentToken.beginLine + ".";			break;		case ErrorConstants.ERR_RETURN_INCOMPATIBLE:			errorMessage += "Tipo de retorno incompatível, na linha " +			e.currentToken.beginLine + ".";			break;		case ErrorConstants.ERR_INCOMPATIBLE_TYPES: 			errorMessage += "Tipos incompativeis na linha " +			e.currentToken.beginLine + ".";			break;		case ErrorConstants.ERR_BOOLEAN_EXPECTED: 			errorMessage += "Boolean esperado, na linha " +			e.currentToken.beginLine + ".";			break;
+		case ErrorConstants.ERR_LOGIC_OP_INVALID: 			errorMessage += "Valor lógico inválido na linha " +			e.currentToken.beginLine + ".";			break;		case ErrorConstants.ERR_OP_MOD_INT_EXPECED: 			errorMessage += "Operador \"%\" espera apenas inteiros, na linha " +			e.currentToken.beginLine + ".";			break;		case ErrorConstants.ERR_BOOLEAN_READ: 			errorMessage += "Variável booleana não pode ser lida, na linha " +			e.currentToken.beginLine + ".";			break;		case ErrorConstants.ERR_STRING_OP: 			errorMessage += "Operador relacional que envolve string "+			"deve ser: string <relacional> string, na linha " +			e.currentToken.beginLine + ".";			break;		case ErrorConstants.ERR_BOOLEAN_OP:			errorMessage += "Apenas operadores \"=\" e \"!\" podem ser "+			"usados envolvendo booleans, na linha " +			e.currentToken.beginLine + ".";			break;		case ErrorConstants.ERR_NUM_OP:			errorMessage += "Operadores \"+\", \"-\", \"*\"ou \"\\\" "+			"podem apenas ser usados "+			"envolvendo inteiros ou reais, na linha " +			e.currentToken.beginLine + ".";			break;		case ErrorConstants.ERR_NUM_EXPECTED:			errorMessage += "Valor numérico esperado, na linha " +			e.currentToken.beginLine + ".";			break;		case ErrorConstants.ERR_INT_BOOL_EXPECTED:			errorMessage += "Valor inteiro ou booleano esperado, na linha " +			e.currentToken.beginLine + ".";			break;		case ErrorConstants.ERR_RETURN_INCOMPATIBLE:			errorMessage += "Tipo de retorno incompatível, na linha " +			e.currentToken.beginLine + ".";			break;		case ErrorConstants.ERR_INCOMPATIBLE_TYPES: 
+			errorMessage += "Tipos incompativeis na linha " +
+			e.currentToken.beginLine + ".";
+			break;
+		case ErrorConstants.ERR_PROCEDURE_NOT_DECLARED: 
+			errorMessage += "Identificador ("+
+					errorParams.get(0)+
+					") na linha " + e.currentToken.beginLine + ", coluna "
+					+ e.currentToken.beginColumn + ", não é um procedimento.";
+			break;		case ErrorConstants.ERR_BOOLEAN_EXPECTED: 			errorMessage += "Boolean esperado, na linha " +			e.currentToken.beginLine + ".";			break;
 		case ErrorConstants.ERR_DUPLICATE_IDENTIFIER: 
 			errorMessage += "Identificador duplicado ("+
 					errorParams.get(0)+
@@ -134,11 +306,16 @@ public class JASON {
 			if (varParam == null) {
 				error(ErrorConstants.ERR_REF_PARAM_INCOMPATIBLE, generateParseException());
 			}
-			if (varParam.getCategory() != STManager.CATEGORY_VAR &&
-				varParam.getCategory() != STManager.CATEGORY_PARAM)			{
+			if (varParam.getCategory() != SymbolTableManager.CATEGORY_VAR &&
+				varParam.getCategory() != SymbolTableManager.CATEGORY_PARAM)			{
 				errorParams = new ArrayList<String>();
 				errorParams.add(varParam.getID());
-				error(ErrorConstants.ERR_REF_PARAM_READ_ONLY,generateParseException());			}		}	}
+				error(ErrorConstants.ERR_REF_PARAM_READ_ONLY,generateParseException());			}
+			if (!(varParam.getCategory() == SymbolTableManager.CATEGORY_PARAM &&
+				  varParam.getTransferType() == SymbolTableManager.TRANSFER_REF))
+				loadRefParam(varParam);
+			else
+				loadRefValue(varParam);		}	}
 
 	public void testParamType(Identifier id,
 				Identifier tipo, int nArg) {
@@ -224,6 +401,8 @@ public class JASON {
 		id.setID(t.image.toUpperCase());
 		id.setLevel(currentLevel);
 		id.setCategory(SymbolTableManager.CATEGORY_PROCEDURE);
+		id.setLabel("L"+currentLabel);
+		currentLabel++;
 		if (!STManager.addSymbol(id)) {
 			errorParams = new ArrayList<String>();
 			errorParams.add(id.getID());
@@ -241,6 +420,8 @@ public class JASON {
 		id.setID(t.image.toUpperCase());
 		id.setLevel(currentLevel);
 		id.setCategory(SymbolTableManager.CATEGORY_FUNCTION);
+		id.setLabel("L"+currentLabel);
+		currentLabel++;
 		if (!STManager.addSymbol(id)) {
 			errorParams = new ArrayList<String>();
 			errorParams.add(id.getID());
@@ -592,6 +773,7 @@ public class JASON {
 		errorCode = 0;
 		int currentLevel = 0;
 		STManager = new SymbolTableManager();
+		codigoObj = new ArrayList< MepaCommand>();
 
 		try {
 			this.Program();
@@ -728,14 +910,33 @@ SPECIAL_TOKEN:
 	}
 
 
-	void Program(): {} { Header() DeclSec() Block() <DOT> }
+	void Program(): {} {
+		{ addCommand("","INPP"); }
+		Header() { programSize = DeclSec(); }
+		{ if (hasSubProg) addCommand("L1","NADA");}
+		Block() { addEndCommands(); } <DOT> }
 	void Header(): {} { <PROGRAM> <IDENTIFIER> <SEMICOLON> }
 	void Block(): {} { <BEGIN> Statements() <END> }
 
 	//Declarações
 
-	void DeclSec(): {} { 
-		(DefineDeclSec())? (TypeDeclSec())? (VarDeclSec())? (SubProgramDecls())? 
+	int DeclSec(): {int size = 0;} { 
+		(DefineDeclSec())? (TypeDeclSec())? (size = VarDeclSec())?
+		( {
+			if (!hasSubProg) {
+				hasSubProg = true;
+				indexMainDSVS = codigoObj.size();
+				currentLabel++;
+			}
+		  }
+			SubProgramDecls())?
+		{
+			if (hasSubProg && !addedMainDSVS) {
+				addedMainDSVS = true;
+				addCommand("","DSVS","","","L1",indexMainDSVS);
+			}
+		}
+		{ return size; } 
 	}
 
 	void DefineDeclSec():
@@ -790,12 +991,14 @@ SPECIAL_TOKEN:
 		( dt = DataType() IdListRecord(id,dt) <SEMICOLON> )+
 	}
 
-	void VarDeclSec(): {} { 
-		<VARIABLES> VarDecls() 
+	int VarDeclSec(): { int size = 0; } { 
+		<VARIABLES> size = VarDecls()
+		{ return size; } 
 	}
 
-	void VarDecls(): {Identifier dt;} {
-		( dt = DataType() IdList(dt) <SEMICOLON> )+
+	int VarDecls(): {Identifier dt; int size = 0;} {
+		( dt = DataType() { size += IdList(dt); } <SEMICOLON> )+
+		{ return size; }
 	}
 
 	Identifier DataType(): {Token t; Identifier id;} {
@@ -810,12 +1013,15 @@ SPECIAL_TOKEN:
 		}
 	}
 
-	void IdList(Identifier dt): {Token t;} {
+	int IdList(Identifier dt): {Token t; int varCont = 0;} {
 		t = <IDENTIFIER>
-		{r3(t,dt);}
+		{r3(t,dt); varCont++;}
 		( <COMMA> t = <IDENTIFIER>
-		{r3(t,dt);}
-				)*
+		{r3(t,dt); varCont++;}
+		)*
+		{ addCommand("","AMEM",new Integer(varCont).toString());
+		return varCont;
+		}
 	}
 
 	void IdListRecord(Identifier id, Identifier dt): {Token t;} {
@@ -830,20 +1036,27 @@ SPECIAL_TOKEN:
 		( ProcDecl() | FunctionDecl() )+ 
 	}
 
-	void ProcDecl(): {Identifier id;} {
+	void ProcDecl(): {Identifier id; int size = 0;} {
 		id = ProcHeader() { currentLevel++; }
-		SubProgramDeclSec(id) Block() {r8(id);}
+		{ size = SubProgramDeclSec(id); } Block()
+		{
+			addEndSubProgCommands(id,size);
+			r8(id);
+		}
 		<SEMICOLON>
 	}
 
 	Identifier ProcHeader(): {Token t;} {
 		<PROCEDURE> t = <IDENTIFIER>
-		{ Identifier id = r5(t); } <SEMICOLON>
+		{
+			Identifier id = r5(t);
+			addCommand(id.getLabel(),"ENPR",new Integer(id.getLevel()+1).toString());
+		} <SEMICOLON>
 		{ return id; }
 	}
 
-	void SubProgramDeclSec(Identifier proc): {} {
-		(ParamDeclSec(proc))? DeclSec() 
+	int SubProgramDeclSec(Identifier proc): {int size = 0;} {
+		(ParamDeclSec(proc))? { size = DeclSec(); return size; } 
 	}
 
 	void ParamDeclSec(Identifier proc): {Identifier dt;Token t;} {
@@ -851,11 +1064,18 @@ SPECIAL_TOKEN:
 				dt = DataType()
 		t = <IDENTIFIER> {r18(proc,t,dt);}
 		<SEMICOLON> )+
+
+		{
+			updateParamAddresses(proc);		}
 	} 
 
-	void FunctionDecl(): {Identifier id;} {
+	void FunctionDecl(): {Identifier id; int size = 0;} {
 		id = FunctionHeader() { currentLevel++; }
-		SubProgramDeclSec(id) FunctionBlock(id) {r8(id);}
+		{ size = SubProgramDeclSec(id); } FunctionBlock(id)
+		{
+			addEndSubProgCommands(id,size);
+			r8(id);
+		}
 
 		<SEMICOLON>
 	}
@@ -884,8 +1104,10 @@ SPECIAL_TOKEN:
 			t2 = new Identifier[1];
 		} 
 		( <READ> ids = Variable(t1) 
-			{ 
-				r27(ids); 
+			{
+				addCommand("","IMPR");
+				saveID(ids.get(ids.size()-1)); 
+				r27(ids);
 				if (t1[0] == STManager.getTypeBoolean())
 					error(ErrorConstants.ERR_BOOLEAN_READ);
 			}
@@ -893,10 +1115,27 @@ SPECIAL_TOKEN:
 			{
 				if (t1[0] != t2[0]) {
 					error(ErrorConstants.ERR_INCOMPATIBLE_TYPES);
-				}  
+				}
+				saveID(ids.get(ids.size()-1));
 			}
-		| <WRITE> Variable(t1) 
-		| <IF> Condition(t1) <THEN> Statements() ElseClause()
+		| <WRITE> ids = Variable(t1)
+			{ loadID(ids.get(ids.size()-1)); addCommand("","IMPR"); } 
+		| <IF> Condition(t1) <THEN>
+			{
+				String L1 = "L"+currentLabel;
+				currentLabel++;
+				String L2 = "L"+currentLabel;
+				currentLabel++;
+		
+				addCommand("","DSVF",L1);
+			}
+			Statements()
+			{
+				addCommand("","DSVS",L2);
+				addCommand(L1,"NADA");
+			}
+			ElseClause()
+			{ addCommand(L2,"NADA"); }
 			{
 				if (t1[0] != STManager.getTypeBoolean())
 					error(ErrorConstants.ERR_BOOLEAN_EXPECTED);
@@ -912,6 +1151,7 @@ SPECIAL_TOKEN:
 					error(ErrorConstants.ERR_BOOLEAN_EXPECTED);
 			}
 		| <CALL> t = <IDENTIFIER> { id = r21(t); r25(id); } ArgList(id)
+		{ addCommand("","CHPR",id.getLabel()); }
 		  )?
 	}
 
@@ -926,8 +1166,14 @@ SPECIAL_TOKEN:
 	int Arguments(Identifier id): {int nArg = 1; Identifier varParam = null;} {
 		{ Identifier tipo[] = new Identifier[1]; }
 		varParam = Condition(tipo)
-		{ testParamReference(id,varParam,nArg); testParamType(id,tipo[0],nArg); }
-		(<COMMA> Condition(null) {nArg++;})*
+		{
+			testParamReference(id,varParam,nArg); testParamType(id,tipo[0],nArg);
+		}
+		(<COMMA> varParam = Condition(tipo)
+		{
+			nArg++;
+			testParamReference(id,varParam,nArg); testParamType(id,tipo[0],nArg);
+		})*
 		{ return nArg; }
 	}
 
@@ -998,7 +1244,9 @@ SPECIAL_TOKEN:
 					(validLogicType(t1[0]) || validLogicType(t2[0])))
 					error(ErrorConstants.ERR_BOOLEAN_OP);
 			else tipo[0] = STManager.getTypeBoolean();
-			c2 = true;	
+			c2 = true;
+
+			doCompare(t);
 		}
 		)?
 		{
@@ -1008,13 +1256,14 @@ SPECIAL_TOKEN:
 	}
 
 	Identifier Expression(Identifier tipo[]):
-		{Identifier varParam = null; Identifier t1[], t2[];} {
+		{Identifier varParam = null; Identifier t1[], t2[]; Token t;} {
 		{
 			boolean c2 = false;
 			t1 = new Identifier[1];
 			t2 = new Identifier[1];
 		}
-		varParam = Term(t1) ( (<OP_ADD> | <OP_SUB> ) Term(t2)
+		varParam = Term(t1) ( ( t = <OP_ADD> | t = <OP_SUB> ) Term(t2)
+		{ doSumSub(t); }
 		{
 			varParam = null;
 			if (t1[0] == STManager.getTypeInteger() && t2[0] == STManager.getTypeInteger())
@@ -1022,7 +1271,9 @@ SPECIAL_TOKEN:
 			else if ((t1[0] == STManager.getTypeInteger() || t1[0] == STManager.getTypeReal()) && (t2[0] == STManager.getTypeInteger() || t2[0] == STManager.getTypeReal()))
 				tipo[0] = STManager.getTypeReal();
 			else error(ErrorConstants.ERR_NUM_OP);
-			c2 = true;	
+			c2 = true;
+
+			//aaaaaaaaa
 		}
 		)*
 		{
@@ -1090,6 +1341,7 @@ SPECIAL_TOKEN:
 			Bool() {tipo[0] = STManager.getTypeBoolean();} |
 			t = <IDENTIFIER> { Identifier id = r21(t); varParam = id;
 			if (id!=null) { r22a(id); t1[0] = id.getType(); }
+			loadID(id);
 			}
 			( <PARENTHESIS_OPEN>
 			  {r22(id);} nPar = Arguments(id) {r24(id,nPar); }
@@ -1102,11 +1354,13 @@ SPECIAL_TOKEN:
 				{
 					r26i(t,minus);
 					tipo[0] = STManager.getTypeInteger();
+					loadInt(t);
 				} 
 			| t = <REAL_CONST> 
 				{
 					r26r(t,minus);
 					tipo[0] = STManager.getTypeReal();
+					loadReal(t);
 				} 
 			  )
 	
@@ -1114,6 +1368,7 @@ SPECIAL_TOKEN:
 				{
 					{ r26s(t); }
 					tipo[0] = STManager.getTypeString();
+					loadString(t);
 				}
 			| <NOT> Factor(false,t1)  
 				{
