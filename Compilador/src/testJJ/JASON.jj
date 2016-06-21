@@ -93,6 +93,10 @@ public class JASON {
 	}
 
 	private void loadID(Identifier id) {
+		int c = id.getCategory();
+		if (c != SymbolTableManager.CATEGORY_VAR && c != SymbolTableManager.CATEGORY_PARAM
+			&& c != SymbolTableManager.CATEGORY_CONST)
+			return;
 		if (id.getCategory() == SymbolTableManager.CATEGORY_PARAM &&
 			id.getTransferType() == SymbolTableManager.TRANSFER_REF) {
 			addCommand("","CRVI",
@@ -127,6 +131,21 @@ public class JASON {
 			addCommand("","ARMZ",
 			new Integer(id.getLevel()).toString(),
 			new Integer(id.getAddress()).toString());
+		}
+	}
+
+	private void saveReturn(Identifier id, Identifier f) {
+		int addr = f.getParameters().get(0).getAddress()-1;
+		if (id.getCategory() == SymbolTableManager.CATEGORY_PARAM &&
+			id.getTransferType() == SymbolTableManager.TRANSFER_REF) {
+			addCommand("","ARMI",
+			new Integer(id.getLevel()).toString(),
+			new Integer(addr).toString());
+		}
+		else {
+			addCommand("","ARMZ",
+			new Integer(id.getLevel()).toString(),
+			new Integer(addr).toString());
 		}
 	}
 
@@ -378,7 +397,7 @@ public class JASON {
 	Cria identificador na tabela de símbolos, lança erro se for duplicado.
 	Define categoria como "variavel" e atualiza seu tipo.
 	*/
-	public void r3(Token t, Identifier type) {
+	public Identifier r3(Token t, Identifier type, int size[]) {
 		Identifier id = new Identifier();
 		id.setID(t.image.toUpperCase());
 		id.setLevel(currentLevel);
@@ -390,6 +409,8 @@ public class JASON {
 			errorParams.add(id.getID());
 			error(ErrorConstants.ERR_DUPLICATE_IDENTIFIER,generateParseException());
 		}
+		size[0] = id.getNBytes();
+		return id;
 	}
 	
 	/*
@@ -1013,11 +1034,20 @@ SPECIAL_TOKEN:
 		}
 	}
 
-	int IdList(Identifier dt): {Token t; int varCont = 0;} {
+	int IdList(Identifier dt):
+		{Token t; int varCont = 0; Identifier var = null; int size[] = new int[1];
+		int currentAddr = 0;} {
 		t = <IDENTIFIER>
-		{r3(t,dt); varCont++;}
+		{var = r3(t,dt,size); varCont++;
+
+		var.setAddress(0);
+		currentAddr = size[0];
+		}
 		( <COMMA> t = <IDENTIFIER>
-		{r3(t,dt); varCont++;}
+		{var = r3(t,dt,size); varCont++;
+		var.setAddress(currentAddr);
+		currentAddr += size[0];
+		}
 		)*
 		{ addCommand("","AMEM",new Integer(varCont).toString());
 		return varCont;
@@ -1082,15 +1112,22 @@ SPECIAL_TOKEN:
 
 	Identifier FunctionHeader(): {Token t;Identifier dt;} {
 		<FUNCTION> t = <IDENTIFIER> { Identifier id = r6(t); }
+		{ addCommand(id.getLabel(),"ENPR",new Integer(id.getLevel()+1).toString()); }
 		<RETURNS> dt = DataType() {r7(id,dt);}
 		<SEMICOLON>
 		{ return id; }
 	}
-	void FunctionBlock(Identifier f): {Identifier id[] = new Identifier[1];} {
+	void FunctionBlock(Identifier f):
+	{
+		Identifier id[] = new Identifier[1];
+		Identifier returnVar;
+	} {
 		<BEGIN> ( Statement() <SEMICOLON> )+  <RETURN>
-		<PARENTHESIS_OPEN> Condition(id)		{
+		<PARENTHESIS_OPEN> returnVar = Condition(id)		{
 			if (f.getType() != id[0])
-			error(ErrorConstants.ERR_RETURN_INCOMPATIBLE);		}
+			error(ErrorConstants.ERR_RETURN_INCOMPATIBLE);
+
+			saveReturn(returnVar,f);		}
 		<PARENTHESIS_CLOSE> <END>
 	}
 
@@ -1343,10 +1380,14 @@ SPECIAL_TOKEN:
 			if (id!=null) { r22a(id); t1[0] = id.getType(); }
 			loadID(id);
 			}
-			( <PARENTHESIS_OPEN>
-			  {r22(id);} nPar = Arguments(id) {r24(id,nPar); }
-			  <PARENTHESIS_CLOSE> )?
-			  VariableAux(id, t1) 
+			(
+				<PARENTHESIS_OPEN>
+				{ addCommand("","AMEM","1"); }
+			  	{r22(id);} nPar = Arguments(id) {r24(id,nPar); }
+			  	<PARENTHESIS_CLOSE>
+			  	{ addCommand("","CHPR",id.getLabel()); }
+			  	)?
+			  	VariableAux(id, t1) 
 				{
 					tipo[0] = t1[0];
 				}
