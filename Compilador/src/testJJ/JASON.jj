@@ -1401,7 +1401,7 @@ SPECIAL_TOKEN:
 		{ t1 = new Identifier[1]; }
 		(	(
 				<OP_ADD> { hasSign = true; } |
-				<OP_SUB> { minus = !minus; varParam = null; }
+				<OP_SUB> { hasSign = true; minus = !minus; varParam = null; }
 			)
 			varParam = Unary(t1,minus,hasSign) { tipo[0] = t1[0]; } |
 			varParam = Factor(minus,t1)
@@ -1414,6 +1414,9 @@ SPECIAL_TOKEN:
 				}
 				else {
 					tipo[0] = t1[0];
+				}
+				if (minus)				{					addCommand("","CRCT","-1");
+					addCommand("","MULT");
 				}
 			}
 		)
