@@ -30,9 +30,7 @@ public class JASON {
 	int currentLabel = 1;
 	int offset = 0;
 	int programSize = 0;
-	boolean hasSubProg = false;
 	boolean addedMainDSVS = false;
-	int indexMainDSVS = 0;
 
 	int classe_t;
 
@@ -83,6 +81,19 @@ public class JASON {
 		mc.setP2(p2);
 		mc.setLabelParam(labelParam);
 		codigoObj.add(i,mc);
+	}
+
+	private void doMultCommand(Token t) {
+		switch (t.kind) {
+		case OP_MULT:
+			addCommand("","MULT");
+			break;
+		case OP_DIV:
+			addCommand("","DIVI");
+			break;
+		case OP_MOD:
+			break; 
+		}
 	}
 
 	private void updateParamAddresses (Identifier proc) {		if (proc==null)
@@ -794,7 +805,7 @@ public class JASON {
 		errorCode = 0;
 		int currentLevel = 0;
 		STManager = new SymbolTableManager();
-		codigoObj = new ArrayList< MepaCommand>();
+		codigoObj = new ArrayList<MepaCommand>();
 
 		try {
 			this.Program();
@@ -931,32 +942,33 @@ SPECIAL_TOKEN:
 	}
 
 
-	void Program(): {} {
+	void Program(): {int blockLabel[] = new int[1];} {
 		{ addCommand("","INPP"); }
-		Header() { programSize = DeclSec(); }
-		{ if (hasSubProg) addCommand("L1","NADA");}
-		Block() { addEndCommands(); } <DOT> }
+		Header() { programSize = DeclSec(blockLabel); }
+
+		Block(blockLabel[0]) { addEndCommands(); } <DOT> }
 	void Header(): {} { <PROGRAM> <IDENTIFIER> <SEMICOLON> }
-	void Block(): {} { <BEGIN> Statements() <END> }
+	void Block(int blockLabel): {} {
+		{
+			if (blockLabel != 0)			{
+				addCommand("L"+blockLabel,"NADA");
+			}
+		}
+		<BEGIN> Statements() <END>
+	}
 
 	//Declarações
 
-	int DeclSec(): {int size = 0;} { 
+	int DeclSec(int blockLabel[]): {int size = 0; boolean skipToBlock = false;} {
+		{ blockLabel[0] = 0; } 
 		(DefineDeclSec())? (TypeDeclSec())? (size = VarDeclSec())?
 		( {
-			if (!hasSubProg) {
-				hasSubProg = true;
-				indexMainDSVS = codigoObj.size();
-				currentLabel++;
-			}
+			skipToBlock = true;
+			blockLabel[0] = currentLabel;
+			addCommand("","DSVS","","","L"+currentLabel);
+			currentLabel++;
 		  }
 			SubProgramDecls())?
-		{
-			if (hasSubProg && !addedMainDSVS) {
-				addedMainDSVS = true;
-				addCommand("","DSVS","","","L1",indexMainDSVS);
-			}
-		}
 		{ return size; } 
 	}
 
@@ -1018,7 +1030,10 @@ SPECIAL_TOKEN:
 	}
 
 	int VarDecls(): {Identifier dt; int size = 0;} {
-		( dt = DataType() { size += IdList(dt); } <SEMICOLON> )+
+		{
+			int lastAddress[] = new int[1];
+			lastAddress[0] = 0;		}
+		( dt = DataType() { size += IdList(dt,lastAddress); } <SEMICOLON> )+
 		{ return size; }
 	}
 
@@ -1034,19 +1049,18 @@ SPECIAL_TOKEN:
 		}
 	}
 
-	int IdList(Identifier dt):
-		{Token t; int varCont = 0; Identifier var = null; int size[] = new int[1];
-		int currentAddr = 0;} {
+	int IdList(Identifier dt, int lastAddress[]):
+		{Token t; int varCont = 0; Identifier var = null; int size[] = new int[1];} {
 		t = <IDENTIFIER>
 		{var = r3(t,dt,size); varCont++;
 
-		var.setAddress(0);
-		currentAddr = size[0];
+		var.setAddress(lastAddress[0]);
+		lastAddress[0] += size[0];
 		}
 		( <COMMA> t = <IDENTIFIER>
 		{var = r3(t,dt,size); varCont++;
-		var.setAddress(currentAddr);
-		currentAddr += size[0];
+		var.setAddress(lastAddress[0]);
+		lastAddress[0] += size[0];
 		}
 		)*
 		{ addCommand("","AMEM",new Integer(varCont).toString());
@@ -1067,8 +1081,13 @@ SPECIAL_TOKEN:
 	}
 
 	void ProcDecl(): {Identifier id; int size = 0;} {
+		{
+			int blockLabel[] = new int[1];
+			blockLabel[0] = 0;
+		}
 		id = ProcHeader() { currentLevel++; }
-		{ size = SubProgramDeclSec(id); } Block()
+		
+		{ size = SubProgramDeclSec(id,blockLabel); } Block(blockLabel[0])
 		{
 			addEndSubProgCommands(id,size);
 			r8(id);
@@ -1085,8 +1104,11 @@ SPECIAL_TOKEN:
 		{ return id; }
 	}
 
-	int SubProgramDeclSec(Identifier proc): {int size = 0;} {
-		(ParamDeclSec(proc))? { size = DeclSec(); return size; } 
+	int SubProgramDeclSec(Identifier proc, int blockLabel[]): {int size = 0;} {
+		(ParamDeclSec(proc))?
+		{
+			size = DeclSec(blockLabel); return size;
+		} 
 	}
 
 	void ParamDeclSec(Identifier proc): {Identifier dt;Token t;} {
@@ -1100,8 +1122,11 @@ SPECIAL_TOKEN:
 	} 
 
 	void FunctionDecl(): {Identifier id; int size = 0;} {
+		{
+			int blockLabel[] = new int[1];
+			blockLabel[0] = 0;		}
 		id = FunctionHeader() { currentLevel++; }
-		{ size = SubProgramDeclSec(id); } FunctionBlock(id)
+		{ size = SubProgramDeclSec(id,blockLabel); } FunctionBlock(id,blockLabel[0])
 		{
 			addEndSubProgCommands(id,size);
 			r8(id);
@@ -1117,11 +1142,16 @@ SPECIAL_TOKEN:
 		<SEMICOLON>
 		{ return id; }
 	}
-	void FunctionBlock(Identifier f):
+	void FunctionBlock(Identifier f, int blockLabel):
 	{
 		Identifier id[] = new Identifier[1];
 		Identifier returnVar;
 	} {
+		{
+			if (blockLabel != 0)
+			{
+				addCommand("L"+blockLabel,"NADA");
+			}		}
 		<BEGIN> ( Statement() <SEMICOLON> )+  <RETURN>
 		<PARENTHESIS_OPEN> returnVar = Condition(id)		{
 			if (f.getType() != id[0])
@@ -1142,7 +1172,7 @@ SPECIAL_TOKEN:
 		} 
 		( <READ> ids = Variable(t1) 
 			{
-				addCommand("","IMPR");
+				addCommand("","LEIT");
 				saveID(ids.get(ids.size()-1)); 
 				r27(ids);
 				if (t1[0] == STManager.getTypeBoolean())
@@ -1177,7 +1207,22 @@ SPECIAL_TOKEN:
 				if (t1[0] != STManager.getTypeBoolean())
 					error(ErrorConstants.ERR_BOOLEAN_EXPECTED);
 			}
-		| <WHILE> Condition(t1) <DO> Statements() <ENDWHILE>
+		| <WHILE>
+			{
+				L1 = "L"+currentLabel;
+				currentLabel++;
+				L2 = "L"+currentLabel;
+				currentLabel++;
+
+				addCommand(L1,"NADA");
+			}
+			Condition(t1) <DO>
+			{ addCommand("","DSVF",L2); }
+
+			Statements()
+
+			{ addCommand("","DSVS",L1); addCommand(L2,"NADA"); }
+			<ENDWHILE>
 			{
 				if (t1[0] != STManager.getTypeBoolean()) 
 					error(ErrorConstants.ERR_BOOLEAN_EXPECTED);
@@ -1326,7 +1371,10 @@ SPECIAL_TOKEN:
 			boolean c2 = false;
 		}
 		{ boolean minus = false; }
-		varParam = Unary(t1,minus,false) ( ( t = <OP_MULT> | t = <OP_DIV> | t = <OP_MOD> )
+		varParam = Unary(t1,minus,false)(
+
+		( t = <OP_MULT> | t = <OP_DIV> | t = <OP_MOD> )
+
 		{ minus = false; }
 		{ varParam = null; }
 		Unary(t2,minus,false)
@@ -1338,6 +1386,8 @@ SPECIAL_TOKEN:
 				tipo[0] = STManager.getTypeReal();
 			else error(ErrorConstants.ERR_NUM_OP);
 			c2 = true;
+
+			{ doMultCommand(t); }
 		}	
 		)*
 		 {		 	if (!c2 && tipo!=null)
